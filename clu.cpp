@@ -1,6 +1,7 @@
 #include "clu.h"
 std::string cluGetErrorString(cl_int err)
 {
+	std::string eStr;
 	switch (err)
 	{
 		case CL_SUCCESS:													return "Success!";
@@ -87,5 +88,39 @@ std::string cluGetProgramBuildStatus(cl_int status)
 
 void cluErr(std::string label, cl::Error e)
 {
-	std::cerr<<"\e[1;31m"<<label<<": "<<e.what()<<": "<<cluGetErrorString(e.err())<<"."<<"\e[0m"<<std::endl;
+	std::cerr<<"\e[1;31m"<<label<<": "<<e.what()<<": "<<cluGetErrorString(e.err())<<":"<<e.err()<<"."<<"\e[0m"<<std::endl;
+}
+
+void errorCallbackCL(const char* errorinfo, const void* private_info_size, ::size_t cb, void* user_data)
+{
+	std::cerr<<"\e[1;30mCLError: "<<"\e[0m"<<std::endl;
+	std::cerr<<" Error: "<<errorinfo<<std::endl;
+}
+
+void errorCallbackGL(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
+{
+	std::cerr<<"\e[1;31mGLError: "<<source<<":"<<id<<"\e[0m"<<std::endl;
+	
+	std::cerr<<" ";
+	switch(type)
+	{
+		case GL_DEBUG_TYPE_ERROR:								std::cout<<"Error"; break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:	std::cout<<"Deprecated Behavior"; break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:	std::cout<<"Undefined Behavior"; break;
+		case GL_DEBUG_TYPE_PORTABILITY:					std::cout<<"Portability"; break;
+		case GL_DEBUG_TYPE_PERFORMANCE:					std::cout<<"Performance"; break;
+		case GL_DEBUG_TYPE_OTHER:								std::cout<<"Other"; break;
+		default:																std::cout<<"Unknown";
+	}
+	std::cerr<<": "<<message<<std::endl;
+	
+	std::cerr<<" Severity: ";
+	switch(severity)
+	{
+		case GL_DEBUG_SEVERITY_LOW:					std::cout<<"Low"; break;
+		case GL_DEBUG_SEVERITY_MEDIUM:					std::cout<<"Medium"; break;
+		case GL_DEBUG_SEVERITY_HIGH:					std::cout<<"High"; break;
+		default:														std::cout<<"Unknown";
+	}
+	std::cerr<<std::endl;
 }
