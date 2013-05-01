@@ -11,17 +11,18 @@ class Grid: public Simulation
 		typedef Simulation super;
 	public:
 		std::vector<cl::Memory> clVBOs;
-		cl::Buffer clLattice;
-		cl::Buffer clTmpLattice;
+		std::vector<cl::Buffer> clLattice;
 		cl::Buffer clVelMag;
 		cl::Buffer clSolid;
+		cl::Buffer clCMap;
 		
 		cl::Kernel clRender;
 		cl::Kernel clStream;
 		cl::Kernel clCollide;
+		cl::Kernel clWrap;
 		cl::Kernel clSolidBC;
 		
-		bool oddStep = false;
+		bool odd = false;
 		
 		int latticeVBO;
 		GLuint rendBuff;

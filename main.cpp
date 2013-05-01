@@ -17,7 +17,7 @@ GLsizei width = 800, height = 600;
 bool fullscreen = false;
 bool paused = false;
 
-int fps = 60;
+int fps = 30;
 int ticks;
 int newTicks;
 int dt;
@@ -53,13 +53,12 @@ int main(int argc, char** argv)
 	
 	width = Settings::root["width"].asInt();
 	height = Settings::root["height"].asInt();
+	fps = Settings::root["fps"].asInt();
 	
 	initGL(argc, argv);
 	
 	Simulation::init();
 	sim = new Grid(width, height);
-	//sim->createShader("data/shaders/grid.glslv", "data/shaders/grid.glslf");
-	//glUseProgram(sim->shader);
 	sim->createKernel("data/kernels/lattice.cl");
 	sim->initData();
 	
@@ -90,39 +89,13 @@ void initGL(int argc, char** argv)
 	glDebugMessageCallback(errorCallbackGL, NULL); //This thing
 	
 	glClearColor(0.0, 0.0, 0.0, 1.0);
-	//glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
 	
 	glViewport(0, 0, glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
-	
-	/*glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(90.0, (GLfloat)width/(GLfloat)height, 0.1, 1000.0);
-	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0, 0.0, transZ);*/
 }
 
 void render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	/*glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(90.0, (GLfloat)width/(GLfloat)height, 0.1, 1000.0);*/
-	sim->projMat = glm::perspective(90.0f, (float)width/(float)height, 0.1f, 1000.0f);
-	
-	/*glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0, 0.0, transZ);
-	glRotatef(rotX, 1.0, 0.0, 0.0);
-	glRotatef(rotY, 0.0, 1.0, 0.0);*/
-	glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, transZ));
-	trans = glm::rotate(trans, rotX, glm::vec3(1.0f, 0.0f, 0.0f));
-	trans = glm::rotate(trans, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
-	sim->modelMat = trans;
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//sim->updateMatrix();
 	newTicks = glutGet(GLUT_ELAPSED_TIME);
@@ -130,7 +103,7 @@ void render()
 	//std::cout<<dt/1000.f<<std::endl;
 	if(!paused)
 	 sim->step(dt/1000.f);
-	renderText();
+	//renderText();
 	sim->render();
 	ticks = newTicks;
 	
@@ -183,6 +156,7 @@ void inputKeys(unsigned char key, int x, int y)
 			display::help = !display::help;
 	}
 }
+
 void inputSpecial(int key, int x, int y)
 {
 	switch(key)
@@ -192,9 +166,9 @@ void inputSpecial(int key, int x, int y)
 			break;
 	}
 }
+
 void inputMouse(int button, int state, int x, int y)
 {
-	//handle mouse interaction for rotating/zooming the view
 	if(state == GLUT_DOWN)
 	{
 		mouseBut |= 1<<button;
@@ -206,43 +180,25 @@ void inputMouse(int button, int state, int x, int y)
 	
 	mouseX = x;
 	mouseY = y;
+	inputMotion(x,y);
 }
+
 void inputMotion(int x, int y)
 {
-	//hanlde the mouse motion for zooming and rotating the view
 	float dx, dy;
 	dx = x - mouseX;
 	dy = y - mouseY;
 	
 	if(mouseBut & 1)
 	{
-		rotX += dy * 0.2;
-		rotY += dx * 0.2;
-		
 		sim->draw(x, y);
 	}
 	else if(mouseBut & 4)
 	{
-		transZ += dy * 0.1;
-		
-		sim->draw(x, y, false);
+		sim->draw(x, y, true);
 	}
-	
 	mouseX = x;
 	mouseY = y;
-	
-	//set view matrix
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	/*glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0, 0.0, transZ);
-	glRotatef(rotX, 1.0, 0.0, 0.0);
-	glRotatef(rotY, 0.0, 1.0, 0.0);*/
-	glm::mat4 trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, transZ));
-	trans = glm::rotate(trans, rotX, glm::vec3(-1.0f, 0.0f, 0.0f));
-	trans = glm::rotate(trans, rotY, glm::vec3(0.0f, 1.0f, 0.0f));
-	sim->modelMat = trans;
-	//sim->updateMatrix();
 }
 
 void resize(GLsizei w, GLsizei h)
@@ -252,8 +208,6 @@ void resize(GLsizei w, GLsizei h)
 	glViewport(0, 0, width, height);
 	
 	sim->resize(w, h);
-	sim->projMat = glm::perspective(90.0f, (float)width/(float)height, 0.1f, 1000.0f);
-	//sim->updateMatrix();
 	glutPostRedisplay();
 }
 
