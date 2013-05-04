@@ -145,7 +145,7 @@ void inputKeys(unsigned char key, int x, int y)
 			break;
 		case 'p':
 		case 'P':
-			paused = !paused;
+			paused = !paused; //Pause
 			break;
 		case 'r':
 		case 'R':
@@ -154,6 +154,13 @@ void inputKeys(unsigned char key, int x, int y)
 		case 'h':
 		case 'H':
 			display::help = !display::help;
+			break;
+		case '=':
+			sim->nextDemo();
+			break;
+		case '-':
+			sim->nextDemo(true);
+			break;
 	}
 }
 
@@ -183,22 +190,49 @@ void inputMouse(int button, int state, int x, int y)
 	inputMotion(x,y);
 }
 
-void inputMotion(int x, int y)
+void inputMotion(int x1, int y1)
 {
-	float dx, dy;
-	dx = x - mouseX;
-	dy = y - mouseY;
-	
-	if(mouseBut & 1)
+	float dx, dy, sx, sy;
+	int x0 = mouseX, y0 = mouseY;
+	dx = abs(x1-x0);
+	dy = abs(y1-y0);
+	if(x0<x1) sx=1; else sx=-1;
+	if(y0<y1) sy=1; else sy=-1;
+	float err = dx-dy;
+	while(1)
 	{
-		sim->draw(x, y);
+		if(mouseBut & 1)
+		{
+			sim->draw(x0, y0);
+			sim->draw(x0-1, y0);
+			sim->draw(x0, y0-1);
+			sim->draw(x0, y0+1);
+			sim->draw(x0+1, y0);
+		}
+		else if(mouseBut & 4)
+		{
+			sim->draw(x0, y0, true);
+			sim->draw(x0-1, y0, true);
+			sim->draw(x0, y0-1, true);
+			sim->draw(x0, y0+1, true);
+			sim->draw(x0+1, y0,true);
+		}
+		if(x0==x1&&y0==y1)
+		 break;
+		float e2 = 2*err;
+		if(e2>-dy)
+		{
+			err = err-dy;
+			x0 = x0+sx;
+		}
+		if(e2<dx)
+		{
+			err = err+dx;
+			y0 = y0+sy;
+		}
 	}
-	else if(mouseBut & 4)
-	{
-		sim->draw(x, y, true);
-	}
-	mouseX = x;
-	mouseY = y;
+	mouseX = x1;
+	mouseY = y1;
 }
 
 void resize(GLsizei w, GLsizei h)

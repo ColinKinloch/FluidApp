@@ -147,6 +147,11 @@ void Simulation::init()
 	}
 }
 
+void Simulation::nextDemo(bool previous)
+{
+	
+}
+
 void Simulation::resize(int w, int h)
 {
 	

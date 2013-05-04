@@ -1,10 +1,20 @@
 {
-	"width":1000,
-	"height":1000,
+	"width":500,
+	"height":500,
 	"fps":60,
-	"tau":0.51,
+	"vx":0.04,
+	"vy":0.04,
+	"rho":5.0,
+	"tau":0.55,
 	"OpenCL":{
 		"platform":0,
 		"device":0
-	}
+	},
+	"examples":[
+		{
+			"width":1000,
+			"height":1000,
+			"solid":""
+		}
+	]
 }

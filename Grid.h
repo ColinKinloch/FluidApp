@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
-#include <boost/multi_array.hpp>
 #include "Simulation.h"
 
 class Grid: public Simulation
@@ -13,21 +12,24 @@ class Grid: public Simulation
 		std::vector<cl::Memory> clVBOs;
 		std::vector<cl::Buffer> clLattice;
 		cl::Buffer clVelMag;
-		cl::Buffer clSolid;
+		std::vector<cl::Buffer> clSolid;
 		cl::Buffer clCMap;
 		
-		cl::Kernel clRender;
 		cl::Kernel clStream;
-		cl::Kernel clCollide;
 		cl::Kernel clWrap;
-		cl::Kernel clSolidBC;
+		cl::Kernel clSolidBB;
+		cl::Kernel clInflow;
+		cl::Kernel clCollide;
+		cl::Kernel clRender;
 		
 		bool odd = false;
+		int demo = 0;
 		
-		int latticeVBO;
+		
 		GLuint rendBuff;
 		GLuint frameBuff;
-		std::vector<char> solid;
+		std::vector<float> lattice;
+		std::vector< std::vector<char> > solid;
 		
 		int width;
 		int height;
@@ -36,13 +38,20 @@ class Grid: public Simulation
 		int D;
 		int Q;
 		float tau;
+		float vx;
+		float vy;
+		float rho;
 		int num;
+		size_t lSize;
 		
 		Grid(int width, int height);
+		
+		void nextDemo(bool previous);
 		
 		void initData();
 		void step(float dt);
 		void render();
+		void restart();
 		void resize(int w, int h);
 		void draw(int x, int y, bool erase = false);
 };

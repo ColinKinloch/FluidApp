@@ -1,7 +1,9 @@
 #include "Particles.h"
 
-Particles::Particles()
+Particles::Particles(int particleCount)
 {
+	num = particleCount;
+	
 	p = Settings::root["OpenCL"]["platform"].asInt();
 	d = Settings::root["OpenCL"]["device"].asInt();
 	
@@ -27,7 +29,6 @@ Particles::Particles()
 
 void Particles::initData()
 {
-	num = 1000000;
 	std::vector<glm::vec4> pos(num);
 	std::vector<glm::vec4> vel(num);
 	std::vector<glm::vec4> col(num);
@@ -98,7 +99,7 @@ void Particles::initData()
 	}
 }
 
-void Particles::step()
+void Particles::step(float dt)
 {
 	glFinish();
 	
@@ -112,7 +113,6 @@ void Particles::step()
 		cluErr("Particles: step", e);
 	}
 	
-	float dt = .01f;
 	kernel.setArg(5, dt);
 	
 	try
@@ -141,7 +141,7 @@ void Particles::render()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SMOOTH);
-	glPointSize(5.);
+	glPointSize(2.);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, colVBO);
 	glColorPointer(4, GL_FLOAT, 0, 0);

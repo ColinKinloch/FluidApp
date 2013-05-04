@@ -1,39 +1,46 @@
 // OpenCL LBM
-//
-// Run order:							6 2 5
-//  1 stream							 \|/ 
-//  2 boundry contitions	3-0-1
-//  3 collide							 /|\ 
-//  4 render							7 4 8
+// tau = Relaxation time τ
+// rho = Input density ρ
+// x = Horizontal position of current node
+// y = Verticle position of current node
+// coord = Coordinatio of current node
+// i = Index of current nodes rest speed
+// si = Screen index of the current node
+// D = Number of dimentions in current LBM
+// Q = Number of speeds in current LBM
+// l* = Local cache of speeds for current node
+// eq* = Local equilibrium value
+// 5 2 6
+//  \|/ 
+// 1-0-3
+//  /|\ 
+// 8 4 7
 // Colin Kinloch - 1026970
 
 #define D 2
 #define Q 9
 
+// Returns screen index for coordinate
 uint getSID(int2 coord, int width)
 {
 	return coord.y*width+coord.x;
 }
 
+// Returns rest velocity index for node at coordinatie
 uint getID(int2 coord, int width)
 {
 	return Q*getSID(coord, width);
 }
 
+// Move speeds in lattice direction
 __kernel void stream(__global __read_only float* oldLattice, __global __write_only float* newLattice, int width, int height, float dt)
 {
-	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
-	int2 coord = (int2)(x, y); //Coordinatie of current node
+	int x = get_global_id(0), y = get_global_id(1);
+	int2 coord = (int2)(x, y);
 	
-	unsigned int i = getID(coord, width); //Index of f0 for current node
+	unsigned int i = getID(coord, width);
 	
-	float l[Q]; //fi of current node
-	
-	//int q = 0;
-	
-	//Copy to local
-	//for(int q = 0; q<Q; ++q)
-	// l[q] = oldLattice[i+q];
+	float l[Q];
 	
 	int xl = x-1;
 	int yl = y-1;
@@ -41,30 +48,26 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 	int yh = y+1;
 	if(x==0) xl=0;
 	if(y==0) yl=0;
-	if(x==(width-1)) xh=width-1;
+	if(x==(width -1)) xh=width -1;
 	if(y==(height-1)) yh=height-1;
-	newLattice[i] = oldLattice[i];
-	newLattice[i+1] = oldLattice[getID((int2)(xl, y), width)+1];
-	newLattice[i+2] = oldLattice[getID((int2)(x, yl), width)+2];
-	newLattice[i+3] = oldLattice[getID((int2)(xh, y), width)+3];
-	newLattice[i+4] = oldLattice[getID((int2)(x, yh), width)+4];
+	newLattice[i  ] = oldLattice[i];
+	newLattice[i+1] = oldLattice[getID((int2)(xl, y ), width)+1];
+	newLattice[i+2] = oldLattice[getID((int2)(x , yl), width)+2];
+	newLattice[i+3] = oldLattice[getID((int2)(xh, y ), width)+3];
+	newLattice[i+4] = oldLattice[getID((int2)(x , yh), width)+4];
 	newLattice[i+5] = oldLattice[getID((int2)(xl, yl), width)+5];
 	newLattice[i+6] = oldLattice[getID((int2)(xh, yl), width)+6];
 	newLattice[i+7] = oldLattice[getID((int2)(xh, yh), width)+7];
 	newLattice[i+8] = oldLattice[getID((int2)(xl, yh), width)+8];
-	
-	//Copy to global
-	//for(int q = 0; q<Q; ++q)
-	// newLattice[i+q] = l[q];
 }
 
 __kernel void collide(__global float* lattice, __global float* vMags, int width, float tau)
 {
-	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
-	int2 coord = (int2)(x, y); //Coordinatie of current node
+	int x = get_global_id(0), y = get_global_id(1);
+	int2 coord = (int2)(x, y);
 	
 	unsigned int si = getSID(coord, width);
-	unsigned int i = si*Q; //Index of f0 for current node
+	unsigned int i = si*Q;
 	
 	float w0 = 4.f/9.f;
 	float w1 = 1.f/9.f;
@@ -74,42 +77,40 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 	float atau1 = 1.f - atau;
 	
 	float l[Q];
-	float ro, rovx, rovy;
+	float rho, rhovx, rhovy;
 	float vx, vy;
-	float v_sq_term;
+	float vSq;
 	
 	for(int q=0; q<Q; ++q)
-	 ro += l[q] = lattice[i+q];
+	 rho += l[q] = lattice[i+q];
 	
-	rovx = l[1] - l[3] + l[5] - l[6] - l[7] + l[8];
-	rovy = l[2] - l[4] + l[5] + l[6] - l[7] - l[8];
+	rhovx = l[1] - l[3] + l[5] - l[6] - l[7] + l[8];
+	rhovy = l[2] - l[4] + l[5] + l[6] - l[7] - l[8];
 	
-	vx = rovx/ro;
-	vy = rovy/ro;
+	vx = rhovx/rho;
+	vy = rhovy/rho;
 	
 	vMags[si] = sqrt(vx*vx+vy*vy);
 	
-	v_sq_term = 1.5f*(vx*vx + vy*vy);
+	vSq = 1.5f*(vx*vx + vy*vy);
 	
-	
-	//Equilibrium
 	float eq[Q];
-	eq[0] = ro*w0*(1.f																			-v_sq_term);
-	eq[1] = ro*w1*(1.f+3.f*vx				+4.5f*vx*vx							-v_sq_term);
-	eq[2] = ro*w1*(1.f+3.f*vy				+4.5f*vy*vy							-v_sq_term);
-	eq[3] = ro*w1*(1.f-3.f*vx				+4.5f*vx*vx							-v_sq_term);
-	eq[4] = ro*w1*(1.f-3.f*vy				+4.5f*vy*vy							-v_sq_term);
-	eq[5] = ro*w2*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-v_sq_term);
-	eq[6] = ro*w2*(1.f+3.f*(-vx+vy)	+4.5f*(-vx+vy)*(-vx+vy)	-v_sq_term);
-	eq[7] = ro*w2*(1.f+3.f*(-vx-vy)	+4.5f*(-vx-vy)*(-vx-vy)	-v_sq_term);
-	eq[8] = ro*w2*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-v_sq_term);
+	eq[0] = rho*w0*(1.f																				-vSq);
+	eq[1] = rho*w1*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
+	eq[2] = rho*w1*(1.f+3.f*vy				+4.5f*vy*vy							-vSq);
+	eq[3] = rho*w1*(1.f-3.f*vx				+4.5f*vx*vx							-vSq);
+	eq[4] = rho*w1*(1.f-3.f*vy				+4.5f*vy*vy							-vSq);
+	eq[5] = rho*w2*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-vSq);
+	eq[6] = rho*w2*(1.f+3.f*(-vx+vy)	+4.5f*(-vx+vy)*(-vx+vy)	-vSq);
+	eq[7] = rho*w2*(1.f+3.f*(-vx-vy)	+4.5f*(-vx-vy)*(-vx-vy)	-vSq);
+	eq[8] = rho*w2*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-vSq);
 	
 	for(int q = 0; q<Q; ++q)
 	 lattice[i+q] = atau1*l[q]+atau*eq[q];
 }
 
-//Bounce back boundry codition
-__kernel void solidBC(__global float* lattice, __global char* __read_only solid, int width)
+// Bounce back from solid surfaces
+__kernel void solidBB(__global float* lattice, __global char* __read_only solid, int width)
 {
 	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
 	int2 coord = (int2)(x, y); //Coordinatie of current node
@@ -154,26 +155,52 @@ __kernel void wrap(__global float* lattice, int width, int height)
 	lattice[it+8] = lattice[ib+8];
 }
 
+__kernel void inflow(__global float* lattice, float vx, float rho, int width)
+{
+	int y = get_global_id(0); //Coordinate of current node
+	int2 coord = (int2)(0, y); //Coordinatie of current node
+	
+	unsigned int i = getID(coord, width); //Index of f0 for current node
+	
+	float l[Q];
+	
+	int w0 = 4.f/9.f;
+	int w1 = 1.f/9.f;
+	int w2 = 1.f/36.f;
+	
+	float vx_term = 1.f+3.f*vx+3.f*vx*vx;
+	l[1] = rho*w1*vx_term;
+	l[5] = rho*w2*vx_term;
+	l[8] = l[5];
+	
+	lattice[i+1] = l[1];
+	lattice[i+5] = l[5];
+	lattice[i+8] = l[8];
+	
+}
+
 //Draw velocities
-__kernel void render(__global float* __read_only vMags, __global char* __read_only solid, int width, int height,
- __global __write_only image2d_t texture, __global float* __read_only cMap)
+__kernel void render(__global float* __read_only vMags,
+ __global char* __read_only solid, int width, int height,
+ __global __write_only image2d_t texture)
 {
 	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
 	int2 coord = (int2)(x, y); //Coordinatie of current node
 	int2 scoord = (int2)(x, height-1-y);
 	unsigned int si = getSID(coord, width); //Index of f0 for current node
 	
-	float minvar=0.f;
-	float maxvar=0.2f;
+	float minc=0.f;
+	float maxc=0.1f;
 	
-	float pv = vMags[si];
-	float frac=(pv-minvar)/(maxvar-minvar);
-	int ncol= 236;
-	int c=ncol*frac*4;
-	float r = cMap[c+1], g = cMap[c+2], b = cMap[c+3], a = cMap[c];
-	int s = 0;
+	float frac=(vMags[si]-minc)/(maxc-minc);
+	float r, g, b, a = 1.f;
+	
+	r = frac*0.5f;
+	g = frac*1.5f;
+	b = 1.f;
+	
 	if(solid[si])
-	 r = g = b = 0;
+	 r = g = b = 0.f;
 	
 	float4 colour = (float4)(r, g, b, a);
 	write_imagef(texture, scoord, colour);

@@ -18,10 +18,10 @@ class Particles: public Simulation
 		
 		int num;
 		
-		Particles();
+		Particles(int particleCount);
 		
 		void initData();
-		void step();
+		void step(float dt);
 		void render();
 };
 

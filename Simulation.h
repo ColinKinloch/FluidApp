@@ -40,11 +40,12 @@ class Simulation
 		~Simulation();
 		
 		void createKernel(std::string path);
-		void restart();
 		
+		virtual void nextDemo(bool previous = false);
 		virtual void initData();
 		virtual void step(float dt);
 		virtual void render();
+		virtual void restart();
 		virtual void resize(int h, int w);
 		virtual void draw(int x, int y, bool erase = false);
 };

@@ -89,6 +89,7 @@ std::string cluGetProgramBuildStatus(cl_int status)
 void cluErr(std::string label, cl::Error e)
 {
 	std::cerr<<"\e[1;31m"<<label<<": "<<e.what()<<": "<<cluGetErrorString(e.err())<<":"<<e.err()<<"."<<"\e[0m"<<std::endl;
+	exit(EXIT_FAILURE);
 }
 
 void errorCallbackCL(const char* errorinfo, const void* private_info_size, ::size_t cb, void* user_data)
