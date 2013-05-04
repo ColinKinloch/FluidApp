@@ -177,6 +177,7 @@ void Grid::step(float dt)
 	
 	try
 	{
+		queue.enqueueWriteBuffer(clSolid[demo], CL_TRUE, 0, num*sizeof(char), &(solid[demo])[0], NULL, &event);
 		queue.finish();
 	}
 	catch(cl::Error e)
@@ -237,7 +238,6 @@ void Grid::render()
 	clRender.setArg(1, clSolid[demo]);
 	try
 	{
-		queue.enqueueWriteBuffer(clSolid[demo], CL_TRUE, 0, num*sizeof(char), &(solid[demo])[0], NULL, &event);
 		queue.enqueueAcquireGLObjects(&clVBOs, NULL, &event);
 		queue.enqueueNDRangeKernel(clRender, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
@@ -274,6 +274,9 @@ void Grid::draw(int x, int y, bool erase)
 	float w = (float)width/winWidth;
 	float h = (float)height/winHeight;
 	int sx = w*x, sy = h*y;
+	
+	if(sx<0||sx>width-1||sy<0||y>height-1)
+	 return;
 	
 	int i = (sy*width+sx);
 	solid[demo][i] = !erase;

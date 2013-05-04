@@ -8,7 +8,7 @@
 
 #include "Grid.h"
 
-Simulation* sim;
+Grid* sim;
 
 int window = 0;
 
@@ -262,7 +262,7 @@ void fullToggle()
 void cleanup()
 {
 	delete sim;
+	glutLeaveMainLoop();
 	if(window)
 	 glutDestroyWindow(window);
-	glutLeaveMainLoop();
 }

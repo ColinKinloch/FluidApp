@@ -159,8 +159,8 @@ __kernel void hWrap(__global float* lattice, int width, int height)
 {
 	int y = get_global_id(0);
 	
-	unsigned int il = getID((int2)(0, y), width);
-	unsigned int ir = getID((int2)(width-1, y), width);
+	unsigned int ir = getID((int2)(0, y), width);
+	unsigned int il = getID((int2)(width-1, y), width);
 	//offleft
 	lattice[ir+1] = lattice[il+1];
 	lattice[ir+5] = lattice[il+5];

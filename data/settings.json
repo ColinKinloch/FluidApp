@@ -1,6 +1,6 @@
 {
-	"width":1000,
-	"height":500,
+	"width":300,
+	"height":300,
 	"fps":60,
 	"vx":0.04,
 	"vy":0.04,
@@ -8,7 +8,7 @@
 	"tau":0.55,
 	"wrap":{
 		"horizontal":true,
-		"vertical":false
+		"vertical":true
 	},
 	"OpenCL":{
 		"platform":0,

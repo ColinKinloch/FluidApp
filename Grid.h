@@ -46,7 +46,7 @@ class Grid: public Simulation
 		
 		Grid(int width, int height);
 		
-		void nextDemo(bool previous);
+		void nextDemo(bool previous = false);
 		
 		void initData();
 		void step(float dt);
