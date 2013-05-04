@@ -22,6 +22,10 @@ void Grid::initData()
 	//Relaxation time τ = tau
 	tau = Settings::root["tau"].asFloat();
 	
+	//Wrapping
+	hWrap = Settings::root["wrap"]["horizontal"].asBool();
+	vWrap = Settings::root["wrap"]["vertical"].asBool();
+	
 	lattice.resize(Q*num);
 	solid.resize(2);
 	for(int i=0; i<solid.size(); ++i)
@@ -31,18 +35,21 @@ void Grid::initData()
 	float w1 = 1.f/9.f;
 	float w2 = 1.f/36.f;
 	
+	float vSq = 1.5f*(vx*vx+vy*vy);
+	
+	//Fill lattice with equilibrium velocities
 	for(int i=0; i<num; ++i)
 	{
 		int j=i*Q;
-		lattice[j]	 = w0*rho*(1.f										-1.5f*vx*vx);
-		lattice[j+1] = w1*rho*(1.f+3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
-		lattice[j+2] = w1*rho*(1.f										-1.5f*vx*vx);
-		lattice[j+3] = w1*rho*(1.f-3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
-		lattice[j+4] = w1*rho*(1.f										-1.5f*vx*vx);
-		lattice[j+5] = w2*rho*(1.f+3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
-		lattice[j+6] = w2*rho*(1.f-3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
-		lattice[j+7] = w2*rho*(1.f-3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
-		lattice[j+8] = w2*rho*(1.f+3.f*vx+4.5f*vx*vx	-1.5f*vx*vx);
+		lattice[j]	 = w0*rho*(1.f																			-vSq);
+		lattice[j+1] = w1*rho*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
+		lattice[j+2] = w1*rho*(1.f+3.f*vy				+4.5f*vy*vy							-vSq);
+		lattice[j+3] = w1*rho*(1.f-3.f*vx				+4.5f*vx*vx							-vSq);
+		lattice[j+4] = w1*rho*(1.f-3.f*vy				+4.5f*vy*vy							-vSq);
+		lattice[j+5] = w2*rho*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-vSq);
+		lattice[j+6] = w2*rho*(1.f+3.f*(-vx+vy)	+4.5f*(-vx+vy)*(-vx+vy)	-vSq);
+		lattice[j+7] = w2*rho*(1.f+3.f*(-vx-vy)	+4.5f*(-vx-vy)*(-vx-vy)	-vSq);
+		lattice[j+8] = w2*rho*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-vSq);
 		solid[0][i] = false;
 		solid[1][i] = true;
 	}
@@ -99,7 +106,8 @@ void Grid::initData()
 	{
 		
 		clStream = cl::Kernel(program, "stream");
-		clWrap = cl::Kernel(program, "wrap");
+		clHWrap = cl::Kernel(program, "hWrap");
+		clVWrap = cl::Kernel(program, "vWrap");
 		clSolidBB = cl::Kernel(program, "solidBB");
 		clInflow = cl::Kernel(program, "inflow");
 		clCollide = cl::Kernel(program, "collide");
@@ -117,8 +125,10 @@ void Grid::initData()
 		clStream.setArg(2, width);
 		clStream.setArg(3, height);
 		
-		clWrap.setArg(1, width);
-		clWrap.setArg(2, height);
+		clHWrap.setArg(1, width);
+		clHWrap.setArg(2, height);
+		clVWrap.setArg(1, width);
+		clVWrap.setArg(2, height);
 		
 		clSolidBB.setArg(2, width);
 		
@@ -180,7 +190,8 @@ void Grid::step(float dt)
 	
 	clCollide.setArg(0, clLattice[odd]);
 	
-	clWrap.setArg(0, clLattice[odd]);
+	clHWrap.setArg(0, clLattice[odd]);
+	clVWrap.setArg(0, clLattice[odd]);
 	
 	clSolidBB.setArg(0, clLattice[odd]);
 	clSolidBB.setArg(1, clSolid[demo]);
@@ -194,8 +205,12 @@ void Grid::step(float dt)
 		queue.enqueueNDRangeKernel(clStream, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
 		//*
-		queue.enqueueNDRangeKernel(clWrap, cl::NullRange,
-		 cl::NDRange(width), cl::NullRange, NULL, &event);
+		if(hWrap)
+		 queue.enqueueNDRangeKernel(clHWrap, cl::NullRange,
+		  cl::NDRange(height), cl::NullRange, NULL, &event);
+		if(vWrap)
+		 queue.enqueueNDRangeKernel(clVWrap, cl::NullRange,
+		  cl::NDRange(width), cl::NullRange, NULL, &event);
 		queue.enqueueNDRangeKernel(clSolidBB, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
 		//queue.enqueueNDRangeKernel(clInflow, cl::NullRange,

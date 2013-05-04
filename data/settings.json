@@ -1,11 +1,15 @@
 {
-	"width":500,
+	"width":1000,
 	"height":500,
 	"fps":60,
 	"vx":0.04,
 	"vy":0.04,
 	"rho":5.0,
 	"tau":0.55,
+	"wrap":{
+		"horizontal":true,
+		"vertical":false
+	},
 	"OpenCL":{
 		"platform":0,
 		"device":0

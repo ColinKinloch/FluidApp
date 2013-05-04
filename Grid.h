@@ -1,8 +1,6 @@
 #ifndef CKFD_PARTICLES
 #define CKFD_PARTICLES
 
-#include <glm/glm.hpp>
-#include <glm/gtc/random.hpp>
 #include "Simulation.h"
 
 class Grid: public Simulation
@@ -16,7 +14,8 @@ class Grid: public Simulation
 		cl::Buffer clCMap;
 		
 		cl::Kernel clStream;
-		cl::Kernel clWrap;
+		cl::Kernel clHWrap;
+		cl::Kernel clVWrap;
 		cl::Kernel clSolidBB;
 		cl::Kernel clInflow;
 		cl::Kernel clCollide;
@@ -24,7 +23,6 @@ class Grid: public Simulation
 		
 		bool odd = false;
 		int demo = 0;
-		
 		
 		GLuint rendBuff;
 		GLuint frameBuff;
@@ -37,6 +35,8 @@ class Grid: public Simulation
 		int winWidth;
 		int D;
 		int Q;
+		bool hWrap;
+		bool vWrap;
 		float tau;
 		float vx;
 		float vy;

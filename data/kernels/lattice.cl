@@ -3,7 +3,8 @@
 // rho = Input density ρ
 // x = Horizontal position of current node
 // y = Verticle position of current node
-// coord = Coordinatio of current node
+// coord = Coordinate of current node
+// scoord = Current screen coodinate
 // i = Index of current nodes rest speed
 // si = Screen index of the current node
 // D = Number of dimentions in current LBM
@@ -137,13 +138,12 @@ __kernel void solidBB(__global float* lattice, __global char* __read_only solid,
 	}
 }
 
-__kernel void wrap(__global float* lattice, int width, int height)
+__kernel void vWrap(__global float* lattice, int width, int height)
 {
 	int x = get_global_id(0);
 	
 	unsigned int ib = getID((int2)(x, 0), width);
 	unsigned int it = getID((int2)(x, height-1), width);
-	
 	//offtop
 	lattice[ib+2] = lattice[it+2];
 	lattice[ib+5] = lattice[it+5];
@@ -155,12 +155,29 @@ __kernel void wrap(__global float* lattice, int width, int height)
 	lattice[it+8] = lattice[ib+8];
 }
 
+__kernel void hWrap(__global float* lattice, int width, int height)
+{
+	int y = get_global_id(0);
+	
+	unsigned int il = getID((int2)(0, y), width);
+	unsigned int ir = getID((int2)(width-1, y), width);
+	//offleft
+	lattice[ir+1] = lattice[il+1];
+	lattice[ir+5] = lattice[il+5];
+	lattice[ir+8] = lattice[il+8];
+	
+	//offright
+	lattice[il+3] = lattice[ir+3];
+	lattice[il+7] = lattice[ir+7];
+	lattice[il+6] = lattice[ir+6];
+}
+
 __kernel void inflow(__global float* lattice, float vx, float rho, int width)
 {
-	int y = get_global_id(0); //Coordinate of current node
-	int2 coord = (int2)(0, y); //Coordinatie of current node
+	int y = get_global_id(0);
+	int2 coord = (int2)(0, y);
 	
-	unsigned int i = getID(coord, width); //Index of f0 for current node
+	unsigned int i = getID(coord, width);
 	
 	float l[Q];
 	
@@ -184,10 +201,10 @@ __kernel void render(__global float* __read_only vMags,
  __global char* __read_only solid, int width, int height,
  __global __write_only image2d_t texture)
 {
-	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
-	int2 coord = (int2)(x, y); //Coordinatie of current node
+	int x = get_global_id(0), y = get_global_id(1);
+	int2 coord = (int2)(x, y);
 	int2 scoord = (int2)(x, height-1-y);
-	unsigned int si = getSID(coord, width); //Index of f0 for current node
+	unsigned int si = getSID(coord, width);
 	
 	float minc=0.f;
 	float maxc=0.1f;

@@ -5,10 +5,6 @@ std::vector<std::vector<cl::Device> > Simulation::devices;
 
 Simulation::Simulation()
 {
-	
-	projMat = glm::mat4();
-	modelMat = glm::mat4();
-	
 	p = Settings::root["OpenCL"]["platform"].asInt();
 	d = Settings::root["OpenCL"]["device"].asInt();
 	
@@ -36,49 +32,6 @@ Simulation::Simulation()
 Simulation::~Simulation()
 {
 	
-}
-
-void Simulation::updateMatrix()
-{
-	glUseProgram(shader);
-	GLuint projLoc = glGetUniformLocation(shader, "projectionMatrix");
-	GLuint mvmLoc = glGetUniformLocation(shader, "modelViewMatrix");
-	
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projMat));
-	glUniformMatrix4fv(mvmLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
-}
-
-void Simulation::createShader(std::string vertexPath, std::string fragmentPath)
-{
-	std::ifstream vFile(vertexPath);
-	if(!vFile.good())
-	 std::cerr<<"Sim: vShader: file not good"<<std::endl;
-	std::string vertStr((std::istreambuf_iterator<char>(vFile)),
-	 std::istreambuf_iterator<char>());
-	
-	std::ifstream fFile(fragmentPath);
-	if(!fFile.good())
-	 std::cerr<<"Sim: fShader: file not good"<<std::endl;
-	std::string fragStr((std::istreambuf_iterator<char>(fFile)),
-	 std::istreambuf_iterator<char>());
-	
-	const char* vc_str = vertStr.c_str();
-	const char* fc_str = fragStr.c_str();
-	
-	vertShader = glCreateShader(GL_VERTEX_SHADER);
-	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	
-	glShaderSource(vertShader, 1, &vc_str, NULL);
-	glShaderSource(fragShader, 1, &fc_str, NULL);
-	
-	glCompileShader(vertShader);
-	glCompileShader(fragShader);
-	
-	shader = glCreateProgram();
-	glAttachShader(shader, vertShader);
-	glAttachShader(shader, fragShader);
-	
-	glLinkProgram(shader);
 }
 
 void Simulation::createKernel(std::string path)
