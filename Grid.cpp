@@ -238,6 +238,7 @@ void Grid::render()
 	clRender.setArg(1, clSolid[demo]);
 	try
 	{
+		queue.enqueueWriteBuffer(clSolid[demo], CL_TRUE, 0, num*sizeof(char), &(solid[demo])[0], NULL, &event);
 		queue.enqueueAcquireGLObjects(&clVBOs, NULL, &event);
 		queue.enqueueNDRangeKernel(clRender, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);

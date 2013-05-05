@@ -2,7 +2,11 @@
 #define CKFD_SIMULATION
 
 #include <GL/glew.h>
+#if defined __APPLE__ || defined(MACOSX)
+#elif defined WIN32
+#else
 #include <GL/glx.h>
+#endif
 #include "clu.h"
 #include "Settings.h"
 

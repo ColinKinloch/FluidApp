@@ -8,11 +8,25 @@ Simulation::Simulation()
 	p = Settings::root["OpenCL"]["platform"].asInt();
 	d = Settings::root["OpenCL"]["device"].asInt();
 	
+	#if defined (__APPLE__) || defined(MACOSX)
+		CGLContextObj appleContext = CGLGetCurrentContext();
+		CGLShareGroupObj appleShareGroup = CGLGetShareGroup(appleContext);
+		cl_context_properties cProps[] = {
+		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)appleShareGroup,
+		0};
+	#elif defined WIN32
+		cl_context_properties cProps[] = {
+		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+		CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurentDC(),
+		CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(),
+		0};
+	#else
 	cl_context_properties cProps[] = {
 	 CL_CONTEXT_PLATFORM, (cl_context_properties) (platforms[p])(),
 	 CL_GL_CONTEXT_KHR, (cl_context_properties) glXGetCurrentContext(),
 	 CL_GLX_DISPLAY_KHR, (cl_context_properties) glXGetCurrentDisplay(),
 	 0};
+	#endif
 	cl_command_queue_properties cqProps[] = {
 	 //CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
 	 0};

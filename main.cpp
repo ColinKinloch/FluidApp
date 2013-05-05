@@ -1,5 +1,10 @@
 #include <GL/glew.h>
-#include <GL/freeglut.h>
+#if defined __APPLE__ || defined(MACOSX)
+	#include <GLUT/glut.h>
+#else
+	#include <GL/glut.h>
+#endif
+//#include <GL/freeglut.h>
 #include "clu.h"
 #include <iostream>
 
@@ -24,7 +29,6 @@ int dt;
 
 void initGL(int argc, char** argv);
 void render();
-void renderText();
 void timer(int ms);
 
 void inputKeys(unsigned char key, int x, int y);
@@ -80,7 +84,6 @@ void initGL(int argc, char** argv)
 	glutMouseFunc(inputMouse);
 	glutMotionFunc(inputMotion);
 	
-	//glutCreateMenu();
 	glutReshapeFunc(resize);
 	
 	glewInit();
@@ -95,33 +98,15 @@ void initGL(int argc, char** argv)
 
 void render()
 {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	//sim->updateMatrix();
 	newTicks = glutGet(GLUT_ELAPSED_TIME);
 	dt = newTicks-ticks;
 	//std::cout<<dt/1000.f<<std::endl;
 	if(!paused)
 	 sim->step(dt/1000.f);
-	//renderText();
 	sim->render();
 	ticks = newTicks;
 	
 	glutSwapBuffers();
-}
-
-void renderText()
-{
-	glUseProgram(0);
-	std::string text = "\n";
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	
-	glRasterPos2f(-1, 1);
-	if(display::help)
-	 text+="H: hide this help\nEsc: Quit\nP: paused";
-	glutBitmapString(GLUT_BITMAP_9_BY_15, (unsigned char*)text.c_str());
-	//sim->updateMatrix();
 }
 
 void timer(int ms)
@@ -156,9 +141,11 @@ void inputKeys(unsigned char key, int x, int y)
 			display::help = !display::help;
 			break;
 		case '=':
+		case '+': //Next demo
 			sim->nextDemo();
 			break;
 		case '-':
+		case '_': //Previous demo
 			sim->nextDemo(true);
 			break;
 	}
@@ -262,7 +249,6 @@ void fullToggle()
 void cleanup()
 {
 	delete sim;
-	glutLeaveMainLoop();
 	if(window)
 	 glutDestroyWindow(window);
 }
