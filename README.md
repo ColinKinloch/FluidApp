@@ -1,12 +1,12 @@
 # Computational Simulation of Fluid Dynamics - Artifact #
-An implimentation of Lattice Blotzmann method in OpenCL.
+An implementation of Lattice Boltzmann method in OpenCL.
 
 ## User Guide ##
-Click and drag on the screen to draw obsticals to flow.
+Click and drag on the screen to draw obstacles  to flow.
 
-Plus and minus keyboard buttons cycle through demo obsticals.
+Plus and minus keyboard buttons cycle through demo obstacles.
 
-Settings such as resolution and flow velocity can be edited in "./data/settings.json", an explination of each setting
+Settings such as resolution and flow velocity can be edited in "./data/settings.json", an explanation of each setting
 is listed under "Settings".
 
 ### Keyboard Controls ###
@@ -25,16 +25,16 @@ is listed under "Settings".
 * vy: Velocity of vertical flow. Floating point
 * rho: Input density. Floating point
 * tau: Relaxation time of the fluid. Floating point
-* wrap.horizontal: Whether the display wraps horizontaly. Boolean
+* wrap.horizontal: Whether the display wraps horizontally. Boolean
 * wrap.vertical: Whether the display wraps vertical. Boolean
 * OpenCL.platform: Index of platform run simulation on. Integer
 * OpenCL.device: Index of device to run simulation on. Integer
 
 ## Building ##
 [CMake][1] is used to produce system specific build files. The artifact was developed on Linux and while all
-dependanies are cross platform there may be compatability issues with other operating systems. 
+dependencies are cross platform there may be compatibility issues with other operating systems. 
 
-### Dependancy list ###
+### Dependency list ###
 * [GLEW][2]
 * [freeGLUT][3]
 * [OpenGL][4]
