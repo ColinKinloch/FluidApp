@@ -177,6 +177,7 @@ void inputMouse(int button, int state, int x, int y)
 	inputMotion(x,y);
 }
 
+// A simple Bresenham algorithm for line drawing
 void inputMotion(int x1, int y1)
 {
 	float dx, dy, sx, sy;

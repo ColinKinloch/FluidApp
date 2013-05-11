@@ -59,6 +59,7 @@ void Grid::initData()
 	lSize = Q*num*sizeof(float);
 	size_t size = num*sizeof(float);
 	
+	//create renderbuffer
 	glGenRenderbuffers(1, &rendBuff);
 	glBindRenderbuffer(GL_RENDERBUFFER, rendBuff);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA32F, width, height);
@@ -67,6 +68,7 @@ void Grid::initData()
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuff);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rendBuff);
 	
+	//Check renderbuffer completeness
 	GLenum hey = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	std::cout<<"Framebuffer:";
 	switch(hey)
@@ -80,6 +82,7 @@ void Grid::initData()
 	std::cout<<std::endl;
 	glFinish();
 	
+	//Create OpenCL memory pointer for renderbuffer
 	clVBOs.push_back(cl::BufferRenderGL(context, CL_MEM_READ_WRITE, rendBuff));
 	
 	clLattice.push_back(cl::Buffer(context, CL_MEM_WRITE_ONLY, lSize));
@@ -90,7 +93,8 @@ void Grid::initData()
 	
 	try
 	{
-		queue.enqueueWriteBuffer(clLattice[0], CL_TRUE, 0, lSize, &lattice[0], NULL, &event);
+		//Lattice can be copied to both memory locations for debugging
+		//queue.enqueueWriteBuffer(clLattice[0], CL_TRUE, 0, lSize, &lattice[0], NULL, &event);
 		queue.enqueueWriteBuffer(clLattice[1], CL_TRUE, 0, lSize, &lattice[0], NULL, &event);
 		for(int i=0; i<solid.size(); i++)
 		 queue.enqueueWriteBuffer(clSolid[i], CL_TRUE, 0, num*sizeof(char), &(solid[i])[0], NULL, &event);
@@ -121,7 +125,7 @@ void Grid::initData()
 	
 	try
 	{
-		
+		//Set constant arguments for each kernel
 		clStream.setArg(2, width);
 		clStream.setArg(3, height);
 		
@@ -133,8 +137,9 @@ void Grid::initData()
 		clSolidBB.setArg(2, width);
 		
 		clInflow.setArg(1, vx);
-		clInflow.setArg(2, rho);
-		clInflow.setArg(3, width);
+		clInflow.setArg(2, vy);
+		clInflow.setArg(3, rho);
+		clInflow.setArg(4, width);
 		
 		clCollide.setArg(1, clVelMag);
 		clCollide.setArg(2, width);
@@ -143,7 +148,9 @@ void Grid::initData()
 		clRender.setArg(0, clVelMag);
 		clRender.setArg(2, width);
 		clRender.setArg(3, height);
-		clRender.setArg(4, clVBOs[0]);
+		clRender.setArg(4, vx);
+		clRender.setArg(5, vy);
+		clRender.setArg(6, clVBOs[0]);
 		
 		queue.finish();
 	}
@@ -152,6 +159,7 @@ void Grid::initData()
 		cluErr("Grid: initData", e);
 	}
 	
+	//Set framebuffer addressing for blitting at the end of rendering
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuff);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
@@ -174,7 +182,6 @@ void Grid::step(float dt)
 {
 	glFinish();
 	
-	
 	try
 	{
 		queue.enqueueWriteBuffer(clSolid[demo], CL_TRUE, 0, num*sizeof(char), &(solid[demo])[0], NULL, &event);
@@ -185,6 +192,7 @@ void Grid::step(float dt)
 		cluErr("Grid: step: GLO", e);
 	}
 	
+	//Set varyable arguments, primarily lattice
 	clStream.setArg(0, clLattice[!odd]);
 	clStream.setArg(1, clLattice[odd]);
 	clStream.setArg(4, dt);
@@ -202,10 +210,9 @@ void Grid::step(float dt)
 	
 	try
 	{
-		//*
+		//Kernels enqueued
 		queue.enqueueNDRangeKernel(clStream, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
-		//*
 		if(hWrap)
 		 queue.enqueueNDRangeKernel(clHWrap, cl::NullRange,
 		  cl::NDRange(height), cl::NullRange, NULL, &event);
@@ -214,14 +221,12 @@ void Grid::step(float dt)
 		  cl::NDRange(width), cl::NullRange, NULL, &event);
 		queue.enqueueNDRangeKernel(clSolidBB, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
+		
+		// non functional inflow kernel disabled
 		//queue.enqueueNDRangeKernel(clInflow, cl::NullRange,
 		// cl::NDRange(height), cl::NullRange, NULL, &event);
-		//*
-		//*
 		queue.enqueueNDRangeKernel(clCollide, cl::NullRange,
 		 cl::NDRange(width, height), cl::NullRange, NULL, &event);
-		
-		
 		queue.finish();
 	}
 	catch(cl::Error e)
@@ -229,6 +234,7 @@ void Grid::step(float dt)
 		cluErr("Grid: step: NDR", e);
 	}
 	
+	//Lattice address swapped
 	odd = !odd;
 }
 
@@ -249,6 +255,8 @@ void Grid::render()
 	{
 		cluErr("Grid: step: RGLO", e);
 	}
+	
+	//Renderbuffer blitted to main display
 	glBlitFramebuffer(
 	 width, height, 0, 0,
 	 winWidth, winHeight, 0, 0,
@@ -276,7 +284,7 @@ void Grid::draw(int x, int y, bool erase)
 	float h = (float)height/winHeight;
 	int sx = w*x, sy = h*y;
 	
-	if(sx<0||sx>width-1||sy<0||y>height-1)
+	if(sx<0||sx>width-1||sy<0||sy>height-1)
 	 return;
 	
 	int i = (sy*width+sx);

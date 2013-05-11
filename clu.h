@@ -1,3 +1,5 @@
+//A set of helpful functions for dealing with OpenCL
+
 #ifndef CK_CLU
 #define CK_CLU
 

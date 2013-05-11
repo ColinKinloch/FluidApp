@@ -1,3 +1,5 @@
+//The simulation base class, originally created to keep the program object oriented
+
 #ifndef CKFD_SIMULATION
 #define CKFD_SIMULATION
 

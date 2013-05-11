@@ -1,3 +1,5 @@
+//Settings loader based on JsonCpp
+
 #ifndef CKFD_SETTINGS
 #define CKFD_SETTINGS
 

@@ -1,3 +1,5 @@
+//A long list of OpenCL error codes
+
 #ifndef CK_CLERR
 #define CK_CLERR
 

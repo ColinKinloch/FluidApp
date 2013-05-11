@@ -1,3 +1,5 @@
+//The grid class runs the lattice Boltzman simulation
+
 #ifndef CKFD_PARTICLES
 #define CKFD_PARTICLES
 

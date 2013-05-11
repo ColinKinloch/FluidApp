@@ -41,12 +41,13 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 	
 	unsigned int i = getID(coord, width);
 	
-	float l[Q];
-	
+	// Coordinates for adjacent nodes
 	int xl = x-1;
 	int yl = y-1;
 	int xh = x+1;
 	int yh = y+1;
+	
+	// Edge cases
 	if(x==0) xl=0;
 	if(y==0) yl=0;
 	if(x==(width -1)) xh=width -1;
@@ -62,6 +63,7 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 	newLattice[i+8] = oldLattice[getID((int2)(xl, yh), width)+8];
 }
 
+// BGK collision opperator
 __kernel void collide(__global float* lattice, __global float* vMags, int width, float tau)
 {
 	int x = get_global_id(0), y = get_global_id(1);
@@ -70,42 +72,47 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 	unsigned int si = getSID(coord, width);
 	unsigned int i = si*Q;
 	
+	// Weighting for rest, horizontal/vertical and diagonals
 	float w0 = 4.f/9.f;
 	float w1 = 1.f/9.f;
 	float w2 = 1.f/36.f;
 	
 	float atau = 1.f/tau;
-	float atau1 = 1.f - atau;
+	float atau1 = 1.f-atau;
 	
 	float l[Q];
 	float rho, rhovx, rhovy;
 	float vx, vy;
 	float vSq;
 	
+	// Local lattice node filled and node density calculated
 	for(int q=0; q<Q; ++q)
 	 rho += l[q] = lattice[i+q];
 	
-	rhovx = l[1] - l[3] + l[5] - l[6] - l[7] + l[8];
-	rhovy = l[2] - l[4] + l[5] + l[6] - l[7] - l[8];
+	rhovx = l[1]-l[3]+l[5]-l[6]-l[7]+l[8];
+	rhovy = l[2]-l[4]+l[5]+l[6]-l[7]-l[8];
 	
 	vx = rhovx/rho;
 	vy = rhovy/rho;
 	
+	// Speeds stored for use in rendering
 	vMags[si] = sqrt(vx*vx+vy*vy);
 	
 	vSq = 1.5f*(vx*vx + vy*vy);
 	
+	// Equilibrium values calculated
 	float eq[Q];
-	eq[0] = rho*w0*(1.f																				-vSq);
-	eq[1] = rho*w1*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
-	eq[2] = rho*w1*(1.f+3.f*vy				+4.5f*vy*vy							-vSq);
-	eq[3] = rho*w1*(1.f-3.f*vx				+4.5f*vx*vx							-vSq);
-	eq[4] = rho*w1*(1.f-3.f*vy				+4.5f*vy*vy							-vSq);
-	eq[5] = rho*w2*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-vSq);
-	eq[6] = rho*w2*(1.f+3.f*(-vx+vy)	+4.5f*(-vx+vy)*(-vx+vy)	-vSq);
-	eq[7] = rho*w2*(1.f+3.f*(-vx-vy)	+4.5f*(-vx-vy)*(-vx-vy)	-vSq);
-	eq[8] = rho*w2*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-vSq);
+	eq[0] = w0*rho*(1.f																				-vSq);
+	eq[1] = w1*rho*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
+	eq[2] = w1*rho*(1.f+3.f*vy				+4.5f*vy*vy							-vSq);
+	eq[3] = w1*rho*(1.f-3.f*vx				+4.5f*vx*vx							-vSq);
+	eq[4] = w1*rho*(1.f-3.f*vy				+4.5f*vy*vy							-vSq);
+	eq[5] = w2*rho*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-vSq);
+	eq[6] = w2*rho*(1.f+3.f*(-vx+vy)	+4.5f*(-vx+vy)*(-vx+vy)	-vSq);
+	eq[7] = w2*rho*(1.f+3.f*(-vx-vy)	+4.5f*(-vx-vy)*(-vx-vy)	-vSq);
+	eq[8] = w2*rho*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-vSq);
 	
+	// Particle densities returned to the global lattice
 	for(int q = 0; q<Q; ++q)
 	 lattice[i+q] = atau1*l[q]+atau*eq[q];
 }
@@ -113,11 +120,11 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 // Bounce back from solid surfaces
 __kernel void solidBB(__global float* lattice, __global char* __read_only solid, int width)
 {
-	int x = get_global_id(0), y = get_global_id(1); //Coordinate of current node
-	int2 coord = (int2)(x, y); //Coordinatie of current node
+	int x = get_global_id(0), y = get_global_id(1);
+	int2 coord = (int2)(x, y);
 	
 	unsigned int si = getSID(coord, width);
-	unsigned int i = si*Q; //Index of f0 for current node
+	unsigned int i = si*Q;
 	
 	float l[Q];
 	
@@ -138,6 +145,7 @@ __kernel void solidBB(__global float* lattice, __global char* __read_only solid,
 	}
 }
 
+// Wraps particles vertically
 __kernel void vWrap(__global float* lattice, int width, int height)
 {
 	int x = get_global_id(0);
@@ -155,6 +163,7 @@ __kernel void vWrap(__global float* lattice, int width, int height)
 	lattice[it+8] = lattice[ib+8];
 }
 
+// Wraps particles horizontal
 __kernel void hWrap(__global float* lattice, int width, int height)
 {
 	int y = get_global_id(0);
@@ -172,7 +181,8 @@ __kernel void hWrap(__global float* lattice, int width, int height)
 	lattice[il+6] = lattice[ir+6];
 }
 
-__kernel void inflow(__global float* lattice, float vx, float rho, int width)
+// Disabled inflow function
+__kernel void inflow(__global float* lattice, float vx, float vy, float rho, int width)
 {
 	int y = get_global_id(0);
 	int2 coord = (int2)(0, y);
@@ -185,20 +195,21 @@ __kernel void inflow(__global float* lattice, float vx, float rho, int width)
 	int w1 = 1.f/9.f;
 	int w2 = 1.f/36.f;
 	
-	float vx_term = 1.f+3.f*vx+3.f*vx*vx;
-	l[1] = rho*w1*vx_term;
-	l[5] = rho*w2*vx_term;
-	l[8] = l[5];
+	float vSq = 1.5f*(vx*vx+vy*vy);
+	
+	// Adds initial equilibrium velocities to right facing speeds on left edge nodes
+	l[1] = w1*rho*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
+	l[5] = w2*rho*(1.f+3.f*( vx+vy)	+4.5f*( vx+vy)*( vx+vy)	-vSq);
+	l[8] = w2*rho*(1.f+3.f*( vx-vy)	+4.5f*( vx-vy)*( vx-vy)	-vSq);
 	
 	lattice[i+1] = l[1];
 	lattice[i+5] = l[5];
 	lattice[i+8] = l[8];
-	
 }
 
 //Draw velocities
 __kernel void render(__global float* __read_only vMags,
- __global char* __read_only solid, int width, int height,
+ __global char* __read_only solid, int width, int height, float vx, float vy,
  __global __write_only image2d_t texture)
 {
 	int x = get_global_id(0), y = get_global_id(1);
@@ -208,17 +219,22 @@ __kernel void render(__global float* __read_only vMags,
 	
 	float minc=0.f;
 	float maxc=0.1f;
+	float mv = sqrt(vx*vx+vy*vy);
 	
-	float frac=(vMags[si]-minc)/(maxc-minc);
+	float v=vMags[si]/mv;
 	float r, g, b, a = 1.f;
 	
-	r = frac*0.5f;
-	g = frac*1.5f;
+	// Each colour has a different arbitrary weighting this is purely cosmetic
+	r = v*0.25f;
+	g = v*0.5f;
 	b = 1.f;
 	
+	// If the coordinate coincides with a surface
 	if(solid[si])
 	 r = g = b = 0.f;
 	
 	float4 colour = (float4)(r, g, b, a);
+	
+	// Write colour to framebuffer
 	write_imagef(texture, scoord, colour);
 }
