@@ -31,8 +31,10 @@ is listed under "Settings".
 * OpenCL.device: Index of device to run simulation on. Integer
 
 ## Building ##
-[CMake][1] is used to produce system specific build files. The artifact was developed on Linux and while all
-dependencies are cross platform there may be compatibility issues with other operating systems. 
+[CMake][1] is used to produce system specific build files, in linux this will produce a makefile.
+
+The artifact was developed on Linux and while all dependencies are cross platform there may be compatibility issues with 
+other operating systems. 
 
 ### Dependency list ###
 * [GLEW][2]
