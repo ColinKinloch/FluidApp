@@ -5,12 +5,12 @@
 
 #include <iostream>
 #include <fstream>
-#include <jsoncpp/json/json.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 struct Settings
 {
-	static Json::Value root;
-	static Json::Reader reader;
+	static boost::property_tree::ptree root;
 	
 	static bool loadFromFile(std::string path);
 	static bool saveToFile(std::string path);

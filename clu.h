@@ -4,13 +4,23 @@
 #define CK_CLU
 
 #include <GL/glew.h>
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
 #include <GL/glu.h>
+#endif
 #include <iostream>
 #include <string>
 #include <vector>
+#define __CL_ENABLE_EXCEPTIONS
+#ifdef __APPLE__
+#include <OpenCL/OpenCL.h>
+#include "cl.hpp"
+#else
 #include <CL/opencl.h>
-#include "clerr.h"
 #include <CL/cl.hpp>
+#endif
+#include "clerr.h"
 
 GLuint cluCreateGLVBO(const void* data, int size, GLenum target, GLenum usage);
 std::string cluGetErrorString(cl_int err);

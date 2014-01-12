@@ -14,8 +14,6 @@ add_library(clu clu.cpp)
 target_link_libraries(FluidApp Simulation Grid Settings)
 target_link_libraries(Simulation clu)
 
-target_link_libraries(FluidApp jsoncpp)
-
 add_definitions("-std=c++11 -O2")
 #Required?!?
 #add_definitions(${CMAKE_CXX_FLAGS} "-frounding-math")
@@ -46,5 +44,12 @@ if(OPENCL_FOUND)
 	include_directories(${OPENCL_INCLUDE_DIRS})
 	target_link_libraries(FluidApp ${OPENCL_LIBRARIES})
 endif(OPENCL_FOUND)
+
+find_package(Boost REQUIRED)
+if(Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIR})
+	target_link_libraries(FluidApp ${Boost_SYSTEM_LIBRARY})
+endif()
+
 
 file(INSTALL data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

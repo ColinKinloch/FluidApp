@@ -1,17 +1,10 @@
 #include "Settings.h"
 
-Json::Value Settings::root;
-Json::Reader Settings::reader;
+boost::property_tree::ptree Settings::root;
 
 bool Settings::loadFromFile(std::string path)
 {
-	std::ifstream file(path);
-	if(!file.good())
-	 std::cerr<<"Settings: file not good"<<std::endl;
-	std::string fileStr((std::istreambuf_iterator<char>(file)),
-	 std::istreambuf_iterator<char>());
-	
-	reader.parse(fileStr, root);
+	read_json(path, root);
 	return true;
 }
 bool Settings::saveToFile(std::string path)

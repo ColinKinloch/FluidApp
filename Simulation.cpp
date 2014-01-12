@@ -5,15 +5,15 @@ std::vector<std::vector<cl::Device> > Simulation::devices;
 
 Simulation::Simulation()
 {
-	p = Settings::root["OpenCL"]["platform"].asInt();
-	d = Settings::root["OpenCL"]["device"].asInt();
+	p = Settings::root.get<int>("OpenCL.platform");
+	d = Settings::root.get<int>("OpenCL.device");
 	
 	#if defined (__APPLE__) || defined(MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		CGLShareGroupObj appleShareGroup = CGLGetShareGroup(appleContext);
 		cl_context_properties cProps[] = {
-		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)appleShareGroup,
-		0};
+		 CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)appleShareGroup,
+		 0};
 	#elif defined WIN32
 		cl_context_properties cProps[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
@@ -68,7 +68,7 @@ void Simulation::createKernel(std::string path)
 	
 	try
 	{
-		program.build(devices[p]);
+		program.build();
 	}
 	catch(cl::Error e)
 	{
@@ -79,6 +79,10 @@ void Simulation::createKernel(std::string path)
 void Simulation::init()
 {
 	std::string str;
+	
+	
+	int p = Settings::root.get<int>("OpenCL.platform");
+	int d = Settings::root.get<int>("OpenCL.device");
 	
 	try
 	{
@@ -109,7 +113,12 @@ void Simulation::init()
 		for(int j=0; j<devices[i].size(); j++)
 		{
 			devices[i][j].getInfo(CL_DEVICE_NAME, &str);
-			std::cout << "**" << str << std::endl;
+			if(i==p&&j==d)
+			 std::cout << ">";
+			else
+			 std::cout << "*";
+			std::cout << "*" << str;
+			std::cout << std::endl;
 		}
 	}
 }

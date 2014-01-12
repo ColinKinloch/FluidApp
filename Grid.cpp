@@ -14,17 +14,17 @@ void Grid::initData()
 	D = 2, Q = 9;
 	demo = 0;
 	//Input horizontal velocity
-	vx = Settings::root["vx"].asFloat();
+	vx = Settings::root.get<float>("vx");
 	//Input vertical velocity
-	vy = Settings::root["vy"].asFloat();
+	vy = Settings::root.get<float>("vy");
 	//Input density ρ = rho
-	rho = Settings::root["rho"].asFloat();
+	rho = Settings::root.get<float>("rho");
 	//Relaxation time τ = tau
-	tau = Settings::root["tau"].asFloat();
+	tau = Settings::root.get<float>("tau");
 	
 	//Wrapping
-	hWrap = Settings::root["wrap"]["horizontal"].asBool();
-	vWrap = Settings::root["wrap"]["vertical"].asBool();
+	hWrap = Settings::root.get<bool>("wrap.horizontal");
+	vWrap = Settings::root.get<bool>("wrap.vertical");
 	
 	lattice.resize(Q*num);
 	solid.resize(2);

@@ -1,6 +1,6 @@
 #include <GL/glew.h>
 #if defined __APPLE__ || defined(MACOSX)
-	#include <GLUT/glut.h>
+	#include <GL/glut.h>
 #else
 	#include <GL/glut.h>
 #endif
@@ -55,9 +55,9 @@ int main(int argc, char** argv)
 {
 	Settings::loadFromFile("data/settings.json");
 	
-	width = Settings::root["width"].asInt();
-	height = Settings::root["height"].asInt();
-	fps = Settings::root["fps"].asInt();
+	width = Settings::root.get<int>("width");
+	height = Settings::root.get<int>("height");
+	fps = Settings::root.get<int>("fps");
 	
 	initGL(argc, argv);
 	
@@ -89,8 +89,9 @@ void initGL(int argc, char** argv)
 	glewInit();
 	
 	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(errorCallbackGL, NULL); //This thing
+	//glDebugMessageCallback(errorCallbackGL, NULL); //This thing
 	
+	printf("hey\n");
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	glViewport(0, 0, glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
