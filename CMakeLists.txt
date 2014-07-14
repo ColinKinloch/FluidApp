@@ -3,16 +3,27 @@ project(FluidApp)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/ClangOverrides.cmake")
+#set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/ClangOverrides.cmake")
 
-add_executable(FluidApp main.cpp)
-add_library(Settings Settings.cpp)
-add_library(Simulation Simulation.cpp)
-add_library(Grid Grid.cpp)
-add_library(clu clu.cpp)
 
-target_link_libraries(FluidApp Simulation Grid Settings)
-target_link_libraries(Simulation clu)
+set(FLUID_HEADERS
+  Settings.h
+  Grid.h
+  clu.h
+  Simulation.h
+  cl.hpp
+  clerr.h
+)
+set(FLUID_SRCS
+  ${FLUID_HEADERS}
+  clu.cpp
+  Grid.cpp
+  main.cpp
+  Settings.cpp
+  Simulation.cpp
+)
+add_executable(FluidApp ${FLUID_SRCS})
+
 
 add_definitions("-std=c++11 -O2")
 #Required?!?

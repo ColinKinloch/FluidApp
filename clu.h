@@ -3,6 +3,10 @@
 #ifndef CK_CLU
 #define CK_CLU
 
+#define CL_VERSION_1_1
+#undef CL_VERSION_1_2
+#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+
 #include <GL/glew.h>
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
@@ -18,7 +22,7 @@
 #include "cl.hpp"
 #else
 #include <CL/opencl.h>
-#include <CL/cl.hpp>
+#include "cl.hpp"
 #endif
 #include "clerr.h"
 

@@ -68,7 +68,7 @@ void Simulation::createKernel(std::string path)
 	
 	try
 	{
-		program.build();
+		program.build(devices[d]);
 	}
 	catch(cl::Error e)
 	{
