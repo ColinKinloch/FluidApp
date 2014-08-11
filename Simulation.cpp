@@ -72,6 +72,7 @@ void Simulation::createKernel(std::string path)
 	}
 	catch(cl::Error e)
 	{
+		std::cout<<"Log: "<<program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[d][0], NULL)<<std::endl;
 		cluErr("Sim: program", e);
 	}
 }
@@ -92,6 +93,10 @@ void Simulation::init()
 	{
 		cluErr("Sim: init", e);
 	}
+	std::string version;
+	platforms[p].getInfo(CL_PLATFORM_VERSION, &version);
+	
+	std::cout<<version<<std::endl;
 	
 	devices.resize(platforms.size());
 	
