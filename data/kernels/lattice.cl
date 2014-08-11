@@ -210,7 +210,7 @@ __kernel void inflow(__global float* lattice, float vx, float vy, float rho, int
 //Draw velocities
 __kernel void render(__global float* __read_only vMags,
  __global char* __read_only solid, int width, int height, float vx, float vy,
- __global __write_only image2d_t texture)
+ __write_only image2d_t texture)
 {
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
