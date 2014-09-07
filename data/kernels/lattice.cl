@@ -21,17 +21,13 @@
 #define D 2
 #define Q 9
 
-// Returns screen index for coordinate
-uint getSID(int2 coord, int width)
-{
-	return coord.y*width+coord.x;
-}
 
+#define CSID(x, y, width) (y*width+x)
+#define CID(x, y, width) Q*CSID(x, y, width)
+// Returns screen index for coordinate
+#define SID(coord, width) ( coord.y*width+coord.x )
 // Returns rest velocity index for node at coordinatie
-uint getID(int2 coord, int width)
-{
-	return Q*getSID(coord, width);
-}
+#define ID(coord, width) Q*SID(coord, width)
 
 // Move speeds in lattice direction
 __kernel void stream(__global __read_only float* oldLattice, __global __write_only float* newLattice, int width, int height, float dt)
@@ -39,8 +35,7 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
 	
-	unsigned int i = getID(coord, width);
-	
+        unsigned int i = ID(coord, width);
 	// Coordinates for adjacent nodes
 	int xl = x-1;
 	int yl = y-1;
@@ -53,14 +48,14 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 	if(x==(width -1)) xh=width -1;
 	if(y==(height-1)) yh=height-1;
 	newLattice[i  ] = oldLattice[i];
-	newLattice[i+1] = oldLattice[getID((int2)(xl, y ), width)+1];
-	newLattice[i+2] = oldLattice[getID((int2)(x , yl), width)+2];
-	newLattice[i+3] = oldLattice[getID((int2)(xh, y ), width)+3];
-	newLattice[i+4] = oldLattice[getID((int2)(x , yh), width)+4];
-	newLattice[i+5] = oldLattice[getID((int2)(xl, yl), width)+5];
-	newLattice[i+6] = oldLattice[getID((int2)(xh, yl), width)+6];
-	newLattice[i+7] = oldLattice[getID((int2)(xh, yh), width)+7];
-	newLattice[i+8] = oldLattice[getID((int2)(xl, yh), width)+8];
+        newLattice[i+1] = oldLattice[CID(xl, y , width)+1];
+        newLattice[i+2] = oldLattice[CID(x , yl, width)+2];
+        newLattice[i+3] = oldLattice[CID(xh, y , width)+3];
+        newLattice[i+4] = oldLattice[CID(x , yh, width)+4];
+        newLattice[i+5] = oldLattice[CID(xl, yl, width)+5];
+        newLattice[i+6] = oldLattice[CID(xh, yl, width)+6];
+        newLattice[i+7] = oldLattice[CID(xh, yh, width)+7];
+        newLattice[i+8] = oldLattice[CID(xl, yh, width)+8];
 }
 
 // BGK collision opperator
@@ -69,11 +64,11 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
 	
-	unsigned int si = getSID(coord, width);
+        unsigned int si = SID(coord, width);
 	unsigned int i = si*Q;
 	
 	// Weighting for rest, horizontal/vertical and diagonals
-	float w0 = 4.f/9.f;
+        float w0 = 4.f/9.f;
 	float w1 = 1.f/9.f;
 	float w2 = 1.f/36.f;
 	
@@ -123,7 +118,7 @@ __kernel void solidBB(__global float* lattice, __global char* __read_only solid,
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
 	
-	unsigned int si = getSID(coord, width);
+        unsigned int si = SID(coord, width);
 	unsigned int i = si*Q;
 	
 	float l[Q];
@@ -150,8 +145,8 @@ __kernel void vWrap(__global float* lattice, int width, int height)
 {
 	int x = get_global_id(0);
 	
-	unsigned int ib = getID((int2)(x, 0), width);
-	unsigned int it = getID((int2)(x, height-1), width);
+        unsigned int ib = CID(x, 0, width);
+        unsigned int it = CID(x, height-1, width);
 	//offtop
 	lattice[ib+2] = lattice[it+2];
 	lattice[ib+5] = lattice[it+5];
@@ -168,8 +163,8 @@ __kernel void hWrap(__global float* lattice, int width, int height)
 {
 	int y = get_global_id(0);
 	
-	unsigned int ir = getID((int2)(0, y), width);
-	unsigned int il = getID((int2)(width-1, y), width);
+        unsigned int ir = CID(0, y, width);
+        unsigned int il = CID(width-1, y, width);
 	//offleft
 	lattice[ir+1] = lattice[il+1];
 	lattice[ir+5] = lattice[il+5];
@@ -187,11 +182,11 @@ __kernel void inflow(__global float* lattice, float vx, float vy, float rho, int
 	int y = get_global_id(0);
 	int2 coord = (int2)(0, y);
 	
-	unsigned int i = getID(coord, width);
+        unsigned int i = ID(coord, width);
 	
 	float l[Q];
 	
-	int w0 = 4.f/9.f;
+        //int w0 = 4.f/9.f;
 	int w1 = 1.f/9.f;
 	int w2 = 1.f/36.f;
 	
@@ -215,10 +210,10 @@ __kernel void render(__global float* __read_only vMags,
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
 	int2 scoord = (int2)(x, height-1-y);
-	unsigned int si = getSID(coord, width);
+        unsigned int si = SID(coord, width);
 	
-	float minc=0.f;
-	float maxc=0.1f;
+        //float minc=0.f;
+        //float maxc=0.1f;
 	float mv = sqrt(vx*vx+vy*vy);
 	
 	float v=vMags[si]/mv;
@@ -227,8 +222,8 @@ __kernel void render(__global float* __read_only vMags,
 	// Each colour has a different arbitrary weighting this is purely cosmetic
 	r = v*0.25f;
 	g = v*0.5f;
-	b = 1.f;
-	
+        b = 1.f;
+
 	// If the coordinate coincides with a surface
 	if(solid[si])
 	 r = g = b = 0.f;
