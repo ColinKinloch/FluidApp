@@ -5,8 +5,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 #set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/ClangOverrides.cmake")
 
-include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
-
 set(FLUID_HEADERS
   Settings.h
   Grid.h
