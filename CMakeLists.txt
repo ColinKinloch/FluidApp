@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 #set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/ClangOverrides.cmake")
 
+include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
 
 set(FLUID_HEADERS
   Settings.h
@@ -21,6 +22,8 @@ set(FLUID_SRCS
   main.cpp
   Settings.cpp
   Simulation.cpp
+
+  data/kernels/lattice.cl
 )
 add_executable(FluidApp ${FLUID_SRCS})
 
@@ -63,4 +66,16 @@ if(Boost_FOUND)
 endif()
 
 
-file(INSTALL data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+#add_custom_command(TARGET FluidApp POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E make_directory
+#        "$<TARGET_FILE_DIR:FluidApp>/data")
+#add_custom_command(TARGET FluidApp POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_directory
+#        "${PROJECT_SOURCE_DIR}/data"
+#        "$<TARGET_FILE_DIR:FluidApp>/data")
+
+#file(COPY data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+#delayed_install("${CMAKE_CURRENT_SOURCE_DIR}/data/kernels" "lattice.cl" ${CMAKE_CURRENT_BINARY_DIR})
+#file(INSTALL data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+install(FILES data/settings.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data)
+install(FILES data/kernels/lattice.cl DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data/kernels/)
