@@ -68,11 +68,11 @@ void Simulation::createKernel(std::string path)
 	
 	try
 	{
-		program.build(devices[d]);
+		program.build(std::vector<cl::Device>{devices[p][d]});
 	}
 	catch(cl::Error e)
 	{
-		std::cout<<"Log: "<<program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[d][0], NULL)<<std::endl;
+		std::cout<<"Log: "<<program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[p][d], NULL)<<std::endl;
 		cluErr("Sim: program", e);
 	}
 }
