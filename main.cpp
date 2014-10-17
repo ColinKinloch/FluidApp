@@ -53,11 +53,11 @@ namespace display
 
 int main(int argc, char** argv)
 {
-	Settings::loadFromFile("data/settings.json");
-	
-	width = Settings::root.get<int>("width");
-	height = Settings::root.get<int>("height");
-	fps = Settings::root.get<int>("fps");
+  settings = new Settings("./data/settings.json");
+
+	width = settings->getInt("width");
+	height = settings->getInt("height");
+	fps = settings->getInt("fps");
 	
 	initGL(argc, argv);
 	
@@ -68,7 +68,6 @@ int main(int argc, char** argv)
 	
 	ticks = glutGet(GLUT_ELAPSED_TIME);
 	glutMainLoop();
-	return 1;
 }
 
 void initGL(int argc, char** argv)
@@ -91,7 +90,6 @@ void initGL(int argc, char** argv)
 	glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(errorCallbackGL, NULL); //This thing
 	
-	printf("hey\n");
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	glViewport(0, 0, glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));

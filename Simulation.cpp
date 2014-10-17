@@ -1,12 +1,12 @@
 #include "Simulation.h"
-
+#include <fstream>
 std::vector<cl::Platform> Simulation::platforms;
 std::vector<std::vector<cl::Device> > Simulation::devices;
 
 Simulation::Simulation()
 {
-	p = Settings::root.get<int>("OpenCL.platform");
-	d = Settings::root.get<int>("OpenCL.device");
+	p = settings->getInt("OpenCL.platform");
+	d = settings->getInt("OpenCL.device");
 	
 	#if defined (__APPLE__) || defined(MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
@@ -18,7 +18,7 @@ Simulation::Simulation()
 		cl_context_properties cProps[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
 		CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurentDC(),
-		CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(),
+		CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[p])(),
 		0};
 	#else
 	cl_context_properties cProps[] = {
@@ -33,7 +33,7 @@ Simulation::Simulation()
 	
 	try
 	{
-		context = cl::Context(CL_DEVICE_TYPE_GPU, cProps, errorCallbackCL);
+		context = cl::Context(CL_DEVICE_TYPE_ALL, cProps, errorCallbackCL);
 		queue = cl::CommandQueue(context, devices[p][d]);
 	}
 	catch(cl::Error e)
@@ -82,8 +82,8 @@ void Simulation::init()
 	std::string str;
 	
 	
-	int p = Settings::root.get<int>("OpenCL.platform");
-	int d = Settings::root.get<int>("OpenCL.device");
+	int p = settings->getInt("OpenCL.platform");
+	int d = settings->getInt("OpenCL.device");
 	
 	try
 	{

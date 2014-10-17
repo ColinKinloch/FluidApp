@@ -26,7 +26,7 @@ set(FLUID_SRCS
 add_executable(FluidApp ${FLUID_SRCS})
 
 
-add_definitions("-std=c++11 -O2")
+add_definitions("-std=c++11")
 #Required?!?
 #add_definitions(${CMAKE_CXX_FLAGS} "-frounding-math")
 #add_definitions(${CMAKE_CXX_FLAGS} "-fsignaling-nans")
@@ -34,6 +34,14 @@ add_definitions("-std=c++11 -O2")
 include_directories(include)
 
 #target_link_libraries(FluidApp jsoncpp)
+
+include(FindPkgConfig)
+pkg_check_modules(jsonGLib REQUIRED json-glib-1.0)
+
+if(jsonGLib_FOUND)
+  include_directories(${jsonGLib_INCLUDE_DIRS})
+  target_link_libraries(FluidApp ${jsonGLib_LIBRARIES})
+endif()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
@@ -57,23 +65,5 @@ if(OPENCL_FOUND)
 	target_link_libraries(FluidApp ${OPENCL_LIBRARIES})
 endif(OPENCL_FOUND)
 
-find_package(Boost REQUIRED)
-if(Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIR})
-	target_link_libraries(FluidApp ${Boost_SYSTEM_LIBRARY})
-endif()
-
-
-#add_custom_command(TARGET FluidApp POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E make_directory
-#        "$<TARGET_FILE_DIR:FluidApp>/data")
-#add_custom_command(TARGET FluidApp POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy_directory
-#        "${PROJECT_SOURCE_DIR}/data"
-#        "$<TARGET_FILE_DIR:FluidApp>/data")
-
-#file(COPY data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-#delayed_install("${CMAKE_CURRENT_SOURCE_DIR}/data/kernels" "lattice.cl" ${CMAKE_CURRENT_BINARY_DIR})
-#file(INSTALL data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 install(DIRECTORY data/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data)
 install(DIRECTORY data/kernels/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data/kernels/)
