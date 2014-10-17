@@ -42,9 +42,11 @@ std::vector<std::string> Settings::splitPath(std::string path){
 }
 
 void Settings::readMember(std::vector<std::string> path){
-  json_reader_end_member(reader);
+  json_reader_set_root(reader, root);
   for(auto it = path.begin(); it != path.end(); ++it)
+  {
     json_reader_read_member(reader, it->c_str());
+  }
 }
 
 gboolean Settings::getNull(std::string path){
