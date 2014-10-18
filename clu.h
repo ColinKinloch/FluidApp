@@ -1,7 +1,6 @@
 //A set of helpful functions for dealing with OpenCL
 
-#ifndef CK_CLU
-#define CK_CLU
+#pragma once
 
 #define CL_VERSION_1_1
 #undef CL_VERSION_1_2
@@ -22,7 +21,7 @@
 #include "cl.hpp"
 #else
 #include <CL/opencl.h>
-#include "cl.hpp"
+#include <CL/cl.hpp>
 #endif
 #include "clerr.h"
 
@@ -34,5 +33,3 @@ char* cluGetProgramBuildStatus(cl_program program, cl_device_id device);
 void cluErr(std::string label, cl::Error e);
 void errorCallbackCL(const char* errorinfo, const void* private_info_size, ::size_t cb, void* user_data);
 void errorCallbackGL(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, void* userParam);
-
-#endif//CK_CLU

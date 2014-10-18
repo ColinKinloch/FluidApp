@@ -1,7 +1,6 @@
 //A long list of OpenCL error codes
 
-#ifndef CK_CLERR
-#define CK_CLERR
+#pragma once
 
 #undef __GET_DEVICE_INFO_ERR
 #undef __GET_PLATFORM_INFO_ERR
@@ -133,4 +132,3 @@
 #define __ENQUEUE_ACQUIRE_GL_ERR "cklEnqueueAcuireGL"
 #define __ENQUEUE_RELEASE_GL_ERR "cklReleaseGL"
 
-#endif//CK_CLERR

@@ -1,7 +1,6 @@
 //Settings loader based on JsonCpp
 
-#ifndef CKFD_SETTINGS
-#define CKFD_SETTINGS
+#pragma once
 
 #include <glib.h>
 #include <json-glib/json-glib.h>
@@ -36,5 +35,3 @@ public:
   const gchar* getString(std::vector<std::string> path);
 };
 extern Settings* settings;
-
-#endif//CKFD_SETTINGS

@@ -33,7 +33,7 @@ Simulation::Simulation()
 	
 	try
 	{
-		context = cl::Context(CL_DEVICE_TYPE_ALL, cProps, errorCallbackCL);
+		context = cl::Context(CL_DEVICE_TYPE_GPU, cProps, errorCallbackCL);
 		queue = cl::CommandQueue(context, devices[p][d]);
 	}
 	catch(cl::Error e)
@@ -108,7 +108,7 @@ void Simulation::init()
 		
 		try
 		{
-			platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices[i]);
+			platforms[i].getDevices(CL_DEVICE_TYPE_GPU, &devices[i]);
 		}
 		catch(cl::Error e)
 		{

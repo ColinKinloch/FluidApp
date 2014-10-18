@@ -18,9 +18,12 @@
 // 8 4 7
 // Colin Kinloch - 1026970
 
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
 #define D 2
 #define Q 9
 
+#define LTYPE float
 
 #define CSID(x, y, width) (y*width+x)
 #define CID(x, y, width) Q*CSID(x, y, width)
@@ -30,7 +33,7 @@
 #define ID(coord, width) Q*SID(coord, width)
 
 // Move speeds in lattice direction
-__kernel void stream(__global __read_only float* oldLattice, __global __write_only float* newLattice, int width, int height, float dt)
+__kernel void stream(__global __read_only LTYPE* oldLattice, __global __write_only LTYPE* newLattice, int width, int height, float dt)
 {
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
@@ -59,7 +62,7 @@ __kernel void stream(__global __read_only float* oldLattice, __global __write_on
 }
 
 // BGK collision opperator
-__kernel void collide(__global float* lattice, __global float* vMags, int width, float tau)
+__kernel void collide(__global LTYPE* lattice, __global float* vMags, int width, float tau)
 {
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
@@ -75,7 +78,7 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 	float atau = 1.f/tau;
 	float atau1 = 1.f-atau;
 	
-	float l[Q];
+	LTYPE l[Q];
 	float rho, rhovx, rhovy;
 	float vx, vy;
 	float vSq;
@@ -96,7 +99,7 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 	vSq = 1.5f*(vx*vx + vy*vy);
 	
 	// Equilibrium values calculated
-	float eq[Q];
+	LTYPE eq[Q];
 	eq[0] = w0*rho*(1.f																				-vSq);
 	eq[1] = w1*rho*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
 	eq[2] = w1*rho*(1.f+3.f*vy				+4.5f*vy*vy							-vSq);
@@ -113,7 +116,7 @@ __kernel void collide(__global float* lattice, __global float* vMags, int width,
 }
 
 // Bounce back from solid surfaces
-__kernel void solidBB(__global float* lattice, __global char* __read_only solid, int width)
+__kernel void solidBB(__global LTYPE* lattice, __global char* __read_only solid, int width)
 {
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
@@ -121,7 +124,7 @@ __kernel void solidBB(__global float* lattice, __global char* __read_only solid,
         unsigned int si = SID(coord, width);
 	unsigned int i = si*Q;
 	
-	float l[Q];
+	LTYPE l[Q];
 	
 	
 	if(solid[si])
@@ -141,7 +144,7 @@ __kernel void solidBB(__global float* lattice, __global char* __read_only solid,
 }
 
 // Wraps particles vertically
-__kernel void vWrap(__global float* lattice, int width, int height)
+__kernel void vWrap(__global LTYPE* lattice, int width, int height)
 {
 	int x = get_global_id(0);
 	
@@ -159,7 +162,7 @@ __kernel void vWrap(__global float* lattice, int width, int height)
 }
 
 // Wraps particles horizontal
-__kernel void hWrap(__global float* lattice, int width, int height)
+__kernel void hWrap(__global LTYPE* lattice, int width, int height)
 {
 	int y = get_global_id(0);
 	
@@ -177,20 +180,20 @@ __kernel void hWrap(__global float* lattice, int width, int height)
 }
 
 // Disabled inflow function
-__kernel void inflow(__global float* lattice, float vx, float vy, float rho, int width)
+__kernel void inflow(__global LTYPE* lattice, float vx, float vy, float rho, int width)
 {
 	int y = get_global_id(0);
 	int2 coord = (int2)(0, y);
 	
         unsigned int i = ID(coord, width);
 	
-	float l[Q];
+	LTYPE l[Q];
 	
         //int w0 = 4.f/9.f;
 	int w1 = 1.f/9.f;
 	int w2 = 1.f/36.f;
 	
-	float vSq = 1.5f*(vx*vx+vy*vy);
+	LTYPE vSq = 1.5f*(vx*vx+vy*vy);
 	
 	// Adds initial equilibrium velocities to right facing speeds on left edge nodes
 	l[1] = w1*rho*(1.f+3.f*vx				+4.5f*vx*vx							-vSq);
@@ -203,33 +206,65 @@ __kernel void inflow(__global float* lattice, float vx, float vy, float rho, int
 }
 
 //Draw velocities
-__kernel void render(__global float* __read_only vMags,
+__kernel void oldRender(__global LTYPE* __read_only vMags,
  __global char* __read_only solid, int width, int height, float vx, float vy,
  __write_only image2d_t texture)
 {
 	int x = get_global_id(0), y = get_global_id(1);
 	int2 coord = (int2)(x, y);
 	int2 scoord = (int2)(x, height-1-y);
-        unsigned int si = SID(coord, width);
-	
+	unsigned int si = SID(coord, width);
+
         //float minc=0.f;
         //float maxc=0.1f;
-	float mv = sqrt(vx*vx+vy*vy);
-	
-	float v=vMags[si]/mv;
+        LTYPE mv = sqrt(vx*vx+vy*vy);
+
+	LTYPE v=vMags[si]/mv;
 	float r, g, b, a = 1.f;
-	
+
 	// Each colour has a different arbitrary weighting this is purely cosmetic
 	r = v*0.25f;
 	g = v*0.5f;
-        b = 1.f;
+	b = 1.f;
 
 	// If the coordinate coincides with a surface
 	if(solid[si])
 	 r = g = b = 0.f;
-	
+
 	float4 colour = (float4)(r, g, b, a);
-	
+
 	// Write colour to framebuffer
 	write_imagef(texture, scoord, colour);
 }
+
+__kernel void render(__global LTYPE* __read_only vMags,
+ __global char* __read_only solid, int width, int height, float vx, float vy,
+ __write_only image2d_t texture)
+{
+	int x = get_global_id(0), y = get_global_id(1);
+	int2 coord = (int2)(x, y);
+	int2 scoord = (int2)(x, height-1-y);
+	unsigned int si = SID(coord, width);
+
+        //float minc=0.f;
+        //float maxc=0.1f;
+        LTYPE mv = sqrt(vx*vx+vy*vy);
+
+	LTYPE v=vMags[si]/mv;
+	float r, g, b, a = 1.f;
+
+	// Each colour has a different arbitrary weighting this is purely cosmetic
+	r = 1-2*v;
+	g = 1-2*fabs(v-0.5f);
+	b = 2*v-1;
+
+	// If the coordinate coincides with a surface
+	if(solid[si])
+	 r = g = b = 0.f;
+
+	float4 colour = (float4)(r, g, b, a);
+
+	// Write colour to framebuffer
+	write_imagef(texture, scoord, colour);
+}
+

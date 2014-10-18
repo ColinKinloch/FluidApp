@@ -54,7 +54,7 @@ namespace display
 int main(int argc, char** argv)
 {
   settings = new Settings("./data/settings.json");
-
+  std::cout<<settings->getInt("OpenCL.platform")<<":"<<settings->getInt("OpenCL.device")<<std::endl;
 	width = settings->getInt("width");
 	height = settings->getInt("height");
 	fps = settings->getInt("fps");

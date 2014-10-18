@@ -1,9 +1,10 @@
 //The grid class runs the lattice Boltzman simulation
 
-#ifndef CKFD_PARTICLES
-#define CKFD_PARTICLES
+#pragma once
 
 #include "Simulation.h"
+
+#define LTYPE float
 
 class Grid: public Simulation
 {
@@ -28,7 +29,7 @@ class Grid: public Simulation
 		
 		GLuint rendBuff;
 		GLuint frameBuff;
-		std::vector<float> lattice;
+		std::vector<LTYPE> lattice;
 		std::vector< std::vector<char> > solid;
 		
 		int width;
@@ -57,5 +58,3 @@ class Grid: public Simulation
 		void resize(int w, int h);
 		void draw(int x, int y, bool erase = false);
 };
-
-#endif//CKFD_PARTICLES

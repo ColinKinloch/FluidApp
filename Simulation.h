@@ -1,7 +1,6 @@
 //The simulation base class, originally created to keep the program object oriented
 
-#ifndef CKFD_SIMULATION
-#define CKFD_SIMULATION
+#pragma once
 
 #include <GL/glew.h>
 #if defined __APPLE__ || defined(MACOSX)
@@ -42,5 +41,3 @@ class Simulation
 		virtual void resize(int h, int w);
 		virtual void draw(int x, int y, bool erase = false);
 };
-
-#endif//CKFD_SIMULATION
