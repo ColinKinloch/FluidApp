@@ -8,7 +8,6 @@ set(FLUID_HEADERS
   Grid.h
   clu.h
   Simulation.h
-  MainWindow.h
   SimWindow.h
   ContWindow.h
   ToolWindow.h
@@ -21,7 +20,6 @@ set(FLUID_SRCS
   main.cpp
   Settings.cpp
   Simulation.cpp
-  MainWindow.cpp
   SimWindow.cpp
   ContWindow.cpp
   ToolWindow.cpp
