@@ -1,12 +1,11 @@
 #include "Grid.h"
 
-Grid::Grid(int w, int h)
+Grid::Grid(int w, int h, Fl_Gl_Window* win)
+  :Simulation(win)
 {
 	width = winWidth = w;
 	height = winHeight = h;
 	num = w*h;
-	
-	super();
 }
 
 void Grid::initData()
@@ -14,17 +13,17 @@ void Grid::initData()
 	D = 2, Q = 9;
 	demo = 0;
 	//Input horizontal velocity
-	vx = settings->getDouble("vx");
+	vx = settings->getDouble("$.vx");
 	//Input vertical velocity
-	vy = settings->getDouble("vy");
+	vy = settings->getDouble("$.vy");
 	//Input density ρ = rho
-	rho = settings->getDouble("rho");
+	rho = settings->getDouble("$.rho");
 	//Relaxation time τ = tau
-	tau = settings->getDouble("tau");
+	tau = settings->getDouble("$.tau");
 	
 	//Wrapping
-	hWrap = settings->getBool("wrap.horizontal");
-	vWrap = settings->getBool("wrap.vertical");
+	hWrap = settings->getBool("$.wrap.horizontal");
+	vWrap = settings->getBool("$.wrap.vertical");
 	
 	lattice.resize(Q*num);
 	solid.resize(2);
@@ -56,8 +55,8 @@ void Grid::initData()
 	
 	
 	
-	lSize = Q*num*sizeof(float);
-	size_t size = num*sizeof(float);
+	lSize = Q*num*sizeof(LTYPE);
+	size_t size = num*sizeof(LTYPE);
 	
 	//create renderbuffer
 	glGenRenderbuffers(1, &rendBuff);
@@ -162,6 +161,7 @@ void Grid::initData()
 	//Set framebuffer addressing for blitting at the end of rendering
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuff);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	Simulation::initData();
 }
 
 void Grid::restart()
@@ -255,7 +255,9 @@ void Grid::render()
 	{
 		cluErr("Grid: step: RGLO", e);
 	}
-	
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuff);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	//Renderbuffer blitted to main display
 	glBlitFramebuffer(
 	 width, height, 0, 0,

@@ -47,7 +47,7 @@ class Grid: public Simulation
 		int num;
 		size_t lSize;
 		
-		Grid(int width, int height);
+		Grid(int width, int height, Fl_Gl_Window* wind);
 		
 		void nextDemo(bool previous = false);
 		

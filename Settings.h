@@ -14,8 +14,12 @@ class Settings
   JsonReader* reader;
   JsonNode* root;
 
-  void readMember(std::vector<std::string> path);
-  std::vector<std::string> splitPath(std::string path);
+  JsonGenerator* generator;
+
+  std::string filePath;
+
+  JsonNode* getNode(const char* path);
+  JsonNode* queryNode(const char* path);
 
 public:
   Settings(std::string path);
@@ -23,15 +27,19 @@ public:
 
   gchar ** listMembers();
 
-  gboolean getNull(std::string path);
-  gboolean getNull(std::vector<std::string> path);
-  gboolean getBool(std::string path);
-  gboolean getBool(std::vector<std::string> path);
-  gint64 getInt(std::string path);
-  gint64 getInt(std::vector<std::string> path);
-  gdouble getDouble(std::string path);
-  gdouble getDouble(std::vector<std::string> path);
-  const gchar* getString(std::string path);
-  const gchar* getString(std::vector<std::string> path);
+  gboolean save();
+  gboolean save(const char* path);
+
+  void setValue(const char* path, const GValue* value);
+  gboolean getNull(const char* path);
+  void setNull(const char* path);
+  gboolean getBool(const char* path);
+  void setBool(const char* path, gboolean value);
+  gint64 getInt(const char* path);
+  void setInt(const char* path, gint64 value);
+  gdouble getDouble(const char* path);
+  void setDouble(const char* path, gdouble value);
+  const gchar* getString(const char* path);
+  void setString(const char* path, const gchar* value);
 };
 extern Settings* settings;

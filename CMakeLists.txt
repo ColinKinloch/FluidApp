@@ -8,6 +8,10 @@ set(FLUID_HEADERS
   Grid.h
   clu.h
   Simulation.h
+  MainWindow.h
+  SimWindow.h
+  ContWindow.h
+  ToolWindow.h
   clerr.h
 )
 set(FLUID_SRCS
@@ -17,8 +21,13 @@ set(FLUID_SRCS
   main.cpp
   Settings.cpp
   Simulation.cpp
+  MainWindow.cpp
+  SimWindow.cpp
+  ContWindow.cpp
+  ToolWindow.cpp
 
   data/kernels/lattice.cl
+  data/kernels/heatmap.cl
 )
 set(FLUID_DATA
   data/settings.json
@@ -44,6 +53,13 @@ endif()
 if(OpenCL_FOUND)
   include_directories(${OpenCL_INCLUDE_DIRS})
   target_link_libraries(FluidApp ${OpenCL_LIBRARIES})
+endif()
+
+find_package(FLTK REQUIRED)
+if(FLTK_FOUND)
+  include_directories(${FLTK_INCLUDE_DIRS})
+  target_link_libraries(FluidApp ${FLTK_BASE_LIBRARY})
+  target_link_libraries(FluidApp ${FLTK_GL_LIBRARY})
 endif()
 
 find_package(OpenGL REQUIRED)

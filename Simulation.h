@@ -10,6 +10,7 @@
 #endif
 #include "clu.h"
 #include "Settings.h"
+#include <FL/Fl_Gl_Window.h>
 
 class Simulation
 {
@@ -19,19 +20,21 @@ class Simulation
 		
 		static void init();
 		
-		
 		int p;
 		int d;
+
+		bool inited = false;
 		
 		cl::Context context;
 		cl::CommandQueue queue;
 		cl::Program program;
 		cl::Event event;
 		
-		Simulation();
+		Simulation(Fl_Gl_Window* win);
 		~Simulation();
-		
+
 		void createKernel(std::string path);
+		void createKernel(std::vector<std::string> path);
 		
 		virtual void nextDemo(bool previous = false);
 		virtual void initData();

@@ -3,11 +3,12 @@
 std::vector<cl::Platform> Simulation::platforms;
 std::vector<std::vector<cl::Device> > Simulation::devices;
 
-Simulation::Simulation()
+Simulation::Simulation(Fl_Gl_Window* win)
 {
-	p = settings->getInt("OpenCL.platform");
-	d = settings->getInt("OpenCL.device");
-	
+  inited = false;
+	p = settings->getInt("$.OpenCL.platform");
+	d = settings->getInt("$.OpenCL.device");
+
 	#if defined (__APPLE__) || defined(MACOSX)
 		CGLContextObj appleContext = CGLGetCurrentContext();
 		CGLShareGroupObj appleShareGroup = CGLGetShareGroup(appleContext);
@@ -23,7 +24,8 @@ Simulation::Simulation()
 	#else
 	cl_context_properties cProps[] = {
 	 CL_CONTEXT_PLATFORM, (cl_context_properties) (platforms[p])(),
-	 CL_GL_CONTEXT_KHR, (cl_context_properties) glXGetCurrentContext(),
+	 //CL_GL_CONTEXT_KHR, (cl_context_properties) glXGetCurrentContext(),
+	 CL_GL_CONTEXT_KHR, (cl_context_properties) win->context(),
 	 CL_GLX_DISPLAY_KHR, (cl_context_properties) glXGetCurrentDisplay(),
 	 0};
 	#endif
@@ -50,31 +52,44 @@ Simulation::~Simulation()
 
 void Simulation::createKernel(std::string path)
 {
-	std::ifstream file(path);
-	if(!file.good())
-	 std::cerr<<"Sim: Kernel: file not good"<<std::endl;
-	std::string srcStr((std::istreambuf_iterator<char>(file)),
-	 std::istreambuf_iterator<char>());
-	
-	try
-	{
-		cl::Program::Sources source(1, std::make_pair(srcStr.c_str(), srcStr.length()+1));
-		program = cl::Program(context, source);
-	}
-	catch(cl::Error e)
-	{
-		cluErr("Sim: program", e);
-	}
-	
-	try
-	{
-		program.build(std::vector<cl::Device>{devices[p][d]});
-	}
-	catch(cl::Error e)
-	{
-		std::cout<<"Log: "<<program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[p][d], NULL)<<std::endl;
-		cluErr("Sim: program", e);
-	}
+  return createKernel(std::vector<std::string>({path}));
+}
+void Simulation::createKernel(std::vector<std::string> path)
+{
+  std::vector<std::string> sourceTexts;
+
+  for(auto it = path.begin(); it != path.end(); ++it)
+  {
+    std::ifstream file(it->c_str());
+    if(!file.good())
+     std::cerr<<"Sim: Kernel: file not good"<<std::endl;
+    sourceTexts.push_back(std::string((std::istreambuf_iterator<char>(file)),
+     std::istreambuf_iterator<char>()));
+  }
+
+  try
+  {
+    cl::Program::Sources source = cl::Program::Sources();
+
+    for(auto it = sourceTexts.begin(); it != sourceTexts.end(); ++it)
+     source.push_back(std::make_pair(it->c_str(), it->size()));
+
+    program = cl::Program(context, source);
+  }
+  catch(cl::Error e)
+  {
+          cluErr("Sim: program", e);
+  }
+
+  try
+  {
+          program.build(std::vector<cl::Device>{devices[p][d]});
+  }
+  catch(cl::Error e)
+  {
+          std::cout<<"Log: "<<program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[p][d], NULL)<<std::endl;
+          cluErr("Sim: program", e);
+  }
 }
 
 void Simulation::init()
@@ -82,8 +97,8 @@ void Simulation::init()
 	std::string str;
 	
 	
-	int p = settings->getInt("OpenCL.platform");
-	int d = settings->getInt("OpenCL.device");
+	int p = settings->getInt("$.OpenCL.platform");
+	int d = settings->getInt("$.OpenCL.device");
 	
 	try
 	{
@@ -155,7 +170,7 @@ void Simulation::render()
 
 void Simulation::initData()
 {
-	
+	inited = true;
 }
 
 void Simulation::draw(int x, int y, bool erase)

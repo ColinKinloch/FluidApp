@@ -4,6 +4,7 @@
 Settings* settings = nullptr;
 
 Settings::Settings(std::string path){
+  filePath = path;
   GError* error;
   parser = json_parser_new();
   error = nullptr;
@@ -23,67 +24,88 @@ Settings::~Settings(){
   g_object_unref(parser);
 }
 
-gchar ** Settings::listMembers(){
-  json_reader_end_member(reader);
-  return json_reader_list_members(reader);
+JsonNode* Settings::queryNode(const char *path)
+{
+  return json_path_query(path, root, NULL);
 }
-std::vector<std::string> Settings::splitPath(std::string path){
-  size_t pos = 0;
-  const std::string delim = ".";
-  std::vector<std::string> sPath;
-  std::string curr;
-  while((pos = path.find(delim)) != std::string::npos){
-    curr = path.substr(0, pos);
-    sPath.push_back(curr);
-    path.erase(0, pos+delim.length());
-  }
-  sPath.push_back(path);
-  return sPath;
+JsonNode* Settings::getNode(const char* path)
+{
+  JsonNode* node = queryNode(path);
+  JsonArray* array = json_node_get_array (node);
+  return json_array_get_element(array, 0);
 }
 
-void Settings::readMember(std::vector<std::string> path){
-  json_reader_set_root(reader, root);
-  for(auto it = path.begin(); it != path.end(); ++it)
-  {
-    json_reader_read_member(reader, it->c_str());
-  }
+gboolean Settings::save(){
+  return save(filePath.c_str());
+}
+gboolean Settings::save(const char* path){
+  generator = json_generator_new();
+  json_generator_set_root(generator, root);
+
+  return json_generator_to_file(generator, path, NULL);
 }
 
-gboolean Settings::getNull(std::string path){
-  return getNull(std::vector<std::string>({path}));
-}
-gboolean Settings::getNull(std::vector<std::string> path){
-  readMember(path);
-  return json_reader_get_null_value(reader);
+void Settings::setValue(const char *path, const GValue* value)
+{
+  JsonNode* node = getNode(path);
+  json_node_set_value(node, value);
 }
 
-gboolean Settings::getBool(std::string path){
-  return getBool(splitPath(path));
+gboolean Settings::getNull(const char* path){
+  JsonNode* node = getNode(path);
+  return  json_node_is_null(node);
 }
-gboolean Settings::getBool(std::vector<std::string> path){
-  readMember(path);
-  return json_reader_get_boolean_value(reader);
-}
-
-gint64 Settings::getInt(std::string path){
-  return getInt(splitPath(path));
-}
-gint64 Settings::getInt(std::vector<std::string> path){
-  readMember(path);
-  return json_reader_get_int_value(reader);
+void Settings::setNull(const char* path)
+{
+  JsonNode* node = getNode(path);
+  json_node_init_null(node);
+  json_node_free(node);
 }
 
-gdouble Settings::getDouble(std::string path){
-  return getDouble(std::vector<std::string>({path}));
+gboolean Settings::getBool(const char* path){
+  JsonNode* node = getNode(path);
+  gboolean value = json_node_get_boolean (node);
+  json_node_free(node);
+  return value;
 }
-gdouble Settings::getDouble(std::vector<std::string> path){
-  readMember(path);
-  return json_reader_get_double_value(reader);
+void Settings::setBool(const char* path, gboolean value){
+  JsonNode* node = getNode(path);
+  json_node_set_boolean(node, value);
+  json_node_free(node);
 }
 
+gint64 Settings::getInt(const char* path){
+  JsonNode* node = getNode(path);
+  gint64 value = json_node_get_int (node);
+  json_node_free(node);
+  return value;
+}
+void Settings::setInt(const char* path, gint64 value){
+  JsonNode* node = getNode(path);
+  json_node_set_int (node, value);
+  json_node_free(node);
+}
 
-const gchar* Settings::getString(std::string path){
-  json_reader_end_member(reader);
-  json_reader_read_member(reader, path.c_str());
-  return json_reader_get_string_value(reader);
+gdouble Settings::getDouble(const char* path){
+  JsonNode* node = getNode(path);
+  gdouble value = json_node_get_double (node);
+  json_node_free(node);
+  return value;
+}
+void Settings::setDouble(const char* path, gdouble value){
+  JsonNode* node = getNode(path);
+  json_node_set_double (node, value);
+  json_node_free(node);
+}
+
+const gchar* Settings::getString(const char* path){
+  JsonNode* node = getNode(path);
+  const gchar* value = json_node_get_string (node);
+  json_node_free(node);
+  return value;
+}
+void Settings::setString(const char* path, const char* value){
+  JsonNode* node = getNode(path);
+  json_node_set_string(node, value);
+  json_node_free(node);
 }
