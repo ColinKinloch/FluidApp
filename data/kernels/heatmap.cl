@@ -1,5 +1,5 @@
 //Colour map
-float4 colourMap(float v)
+static float4 colourMap(float v)
 {
   float r,g,b,a = 1.f;
 
@@ -31,7 +31,7 @@ float4 colourMap(float v)
 
   return (float4)(r,g,b,a);
 }
-float4 streamlines(float v)
+static float4 streamlines(float v)
 {
   float r,g,b,a = 0.f;
   if(v==1)
@@ -40,10 +40,9 @@ float4 streamlines(float v)
   }
   return (float4)(r,g,b,a);
 }
-float4 oldMap(float v)
+static float4 oldMap(float v)
 {
   float r,g,b,a = 1.f;
-
 
   r = v*0.25f;
   g = v*0.5f;
