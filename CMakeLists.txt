@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(FluidApp)
 
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 set(FLUID_HEADERS
   Settings.h
@@ -42,7 +42,7 @@ include_directories(include)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(jsonGLib REQUIRED json-glib-1.0)
-pkg_search_module(OpenCL REQUIRED OpenCL)
+pkg_search_module(OpenCL OpenCL)
 
 if(jsonGLib_FOUND)
   include_directories(${jsonGLib_INCLUDE_DIRS})
@@ -51,6 +51,12 @@ endif()
 if(OpenCL_FOUND)
   include_directories(${OpenCL_INCLUDE_DIRS})
   target_link_libraries(FluidApp ${OpenCL_LIBRARIES})
+else()
+  find_package(OpenCL REQUIRED)
+  if(OPENCL_FOUND)
+    include_directories(${OPENCL_INCLUDE_DIRS})
+    target_link_libraries(FluidApp ${OPENCL_LIBRARIES})
+  endif()
 endif()
 
 find_package(FLTK REQUIRED)
