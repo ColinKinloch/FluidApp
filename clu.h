@@ -2,9 +2,9 @@
 
 #pragma once
 
-#define CL_VERSION_1_1
-#undef CL_VERSION_1_2
-#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+//#define CL_VERSION_1_1
+//#undef CL_VERSION_1_2
+//#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 
 #include <GL/glew.h>
 #ifdef __APPLE__
