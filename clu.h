@@ -5,6 +5,7 @@
 //#define CL_VERSION_1_1
 //#undef CL_VERSION_1_2
 //#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#define __CL_ENABLE_EXCEPTIONS
 
 #include <GL/glew.h>
 #ifdef __APPLE__
@@ -15,12 +16,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define __CL_ENABLE_EXCEPTIONS
 #ifdef __APPLE__
 #include <OpenCL/OpenCL.h>
 #include "cl.hpp"
 #else
-#include <CL/opencl.h>
+#include <CL/cl.h>
 #include <CL/cl.hpp>
 #endif
 #include "clerr.h"

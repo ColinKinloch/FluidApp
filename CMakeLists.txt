@@ -6,6 +6,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(FLUID_HEADERS
   Settings.h
   Grid.h
+  CpuLbm.h
+  Lbm.h
+  Cell.h
   clu.h
   Simulation.h
   SimWindow.h
@@ -13,10 +16,17 @@ set(FLUID_HEADERS
   ToolWindow.h
   clerr.h
 )
+
+set(FLUID_DATA
+  data/settings.json
+)
+
 set(FLUID_SRCS
   ${FLUID_HEADERS}
   clu.cpp
   Grid.cpp
+  CpuLbm.cpp
+  Lbm.cpp
   main.cpp
   Settings.cpp
   Simulation.cpp
@@ -26,11 +36,9 @@ set(FLUID_SRCS
 
   data/kernels/lattice.cl
   data/kernels/heatmap.cl
-)
-set(FLUID_DATA
-  data/settings.json
-)
 
+  ${FLUID_DATA}
+)
 add_executable(FluidApp ${FLUID_SRCS})
 
 add_definitions("-std=c++11")

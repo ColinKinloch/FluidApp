@@ -2,13 +2,6 @@
 #define USE_GLEW 1
 #include <FL/gl.h>
 #include <FL/Fl.h>
-/*
-#if defined __APPLE__ || defined(MACOSX)
-	#include <FL/glut.h>
-#else
-	#include <FL/glut.h>
-#endif*/
-//#include <GL/freeglut.h>
 #include "clu.h"
 #include <iostream>
 #include <chrono>
@@ -21,6 +14,7 @@
 #include "ToolWindow.h"
 
 #include "Grid.h"
+#include "Lbm.h"
 
 Grid* sim;
 
@@ -76,9 +70,6 @@ int main(int argc, char** argv)
   //settings->setInt("$.width", 10);
   std::cout<<settings->getInt("$.width")<<std::endl;
 
-
-
-
   width = settings->getInt("$.width");
   height = settings->getInt("$.height");
   fps = settings->getInt("$.fps");
@@ -95,7 +86,7 @@ int main(int argc, char** argv)
 
 
   mainWin->show(argc, argv);
-  toolWin->show();
+  //toolWin->show();
   contWin->show();
   mainWin->draw();
 
@@ -109,6 +100,15 @@ int main(int argc, char** argv)
                                                "data/kernels/lattice.cl"
                                              }));
   sim->initData();
+
+  Lbm* lbm = new Lbm(
+    Simulation::platforms[settings->getInt("$.OpenCL.platform")],
+    Simulation::devices[settings->getInt("$.OpenCL.platform")][settings->getInt("$.OpenCL.device")],
+    std::vector<std::string>({
+      "data/kernels/heatmap.cl",
+      "data/kernels/lattice.cl"
+    })
+  );
 
   mainWin->sim = sim;
   contWin->play->callback(pauseCB);

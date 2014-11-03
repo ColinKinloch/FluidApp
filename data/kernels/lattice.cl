@@ -225,7 +225,7 @@ __kernel void render(__global LTYPE* __read_only vMags,
   // Each colour has a different arbitrary weighting this is purely cosmetic
 
   // If the coordinate coincides with a surface
-  float4 colour = streamlines(v);
+  float4 colour = colourMap(v);
   if(solid[si])
    colour = (float4)(0,0,0,1);
 

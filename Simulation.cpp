@@ -120,10 +120,9 @@ void Simulation::init()
 	{
 		platforms[i].getInfo(CL_PLATFORM_VENDOR, &str);
 		std::cout << "*" << str << std::endl;
-		
 		try
 		{
-			platforms[i].getDevices(CL_DEVICE_TYPE_GPU, &devices[i]);
+			platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices[i]);
 		}
 		catch(cl::Error e)
 		{
@@ -132,12 +131,16 @@ void Simulation::init()
 		
 		for(int j=0; j<devices[i].size(); j++)
 		{
+			cl_device_type type = 0;
+			devices[i][j].getInfo(CL_DEVICE_TYPE, &type);
 			devices[i][j].getInfo(CL_DEVICE_NAME, &str);
 			if(i==p&&j==d)
 			 std::cout << ">";
 			else
 			 std::cout << "*";
 			std::cout << "*" << str;
+			if(type!=CL_DEVICE_TYPE_GPU)
+			  std::cout<<", incompatible";
 			std::cout << std::endl;
 		}
 	}
