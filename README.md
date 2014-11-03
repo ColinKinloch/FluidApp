@@ -9,14 +9,6 @@ Plus and minus keyboard buttons cycle through demo obstacles.
 Settings such as resolution and flow velocity can be edited in "./data/settings.json", an explanation of each setting
 is listed under "Settings".
 
-### Keyboard Controls ###
-* Esc or Ctrl+Q or Ctrl+C - Close program
-* Ctrl + F - Fullscreen
-* p - Pause simulation
-* r - Restart simulation
-* = or + - Next demo
-* _ or - - Previous demo
-
 ### Settings ###
 * width: The width of the simulation. Integer
 * height: The height of the simulation. Integer
@@ -38,16 +30,16 @@ other operating systems.
 
 ### Dependency list ###
 * [GLEW][2]
-* [freeGLUT][3]
+* [FLTK][3]
 * [OpenGL][4]
 * [OpenCL][5]
-* [JsonCpp][6]
+* [json-glib][6]
 
 [1]: http://www.cmake.org/ "CMake"
 [2]: http://glew.sourceforge.net/ "GLEW"
-[3]: http://freeglut.sourceforge.net/ "freeGLUT"
+[3]: http://fltk.org "FLTK"
 [4]: http://www.khronos.org/opengl/ "OpenGL"
 [5]: http://www.khronos.org/opencl/ "OpenCL"
-[6]: http://jsoncpp.sourceforge.net/ "JsonCpp"
+[6]: http://wiki.gnome.org/JsonGlib/ "json-glib"
 
 *Colin Kinloch - 1026970*
